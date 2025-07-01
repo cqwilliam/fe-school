@@ -6,13 +6,12 @@ import api from "../../lib/api";
 
 interface CourseMaterial {
   id: number;
-  section_id: number;
-  published_by: number;
+  course_id: number;
   title: string;
   description?: string;
   type: string;
   url: string;
-  published_at: string;
+  created_at: string;
 }
 
 const CourseMaterials = () => {
@@ -39,7 +38,8 @@ const CourseMaterials = () => {
   }, []);
 
   const handleShow = (id: number) => router.push(`/courseMaterials/${id}`);
-  const handleUpdate = (id: number) => router.push(`/courseMaterials/${id}/update`);
+  const handleUpdate = (id: number) =>
+    router.push(`/courseMaterials/${id}/update`);
   const handleCreate = () => router.push("/courseMaterials/create");
 
   return (
@@ -49,10 +49,12 @@ const CourseMaterials = () => {
         maxWidth: 720,
         margin: "0 auto",
         fontFamily: "'Inter', sans-serif",
-        color: "#000000",
+        color: "#ffffff",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Materiales del Curso</h1>
+      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
+        Materiales del Curso
+      </h1>
 
       {error ? (
         <p style={{ color: "red" }}>Error al cargar materiales: {error}</p>
@@ -70,18 +72,24 @@ const CourseMaterials = () => {
               padding: "16px",
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-              backgroundColor: "#fdfdfd",
+              backgroundColor: "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               {material.title}
             </strong>
-            <p>Sección ID: {material.section_id}</p>
-            <p>Publicado por (Usuario ID): {material.published_by}</p>
+            <p>Curso ID: {material.course_id}</p>
             <p>Tipo: {material.type}</p>
-            <p>URL: <a href={material.url} target="_blank" rel="noopener noreferrer">{material.url}</a></p>
+            <p>
+              URL:{" "}
+              <a href={material.url} target="_blank" rel="noopener noreferrer">
+                {material.url}
+              </a>
+            </p>
             {material.description && <p>Descripción: {material.description}</p>}
-            <p>Publicado el: {new Date(material.published_at).toLocaleString()}</p>
+            <p>
+              Registrado el: {new Date(material.created_at).toLocaleString()}
+            </p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button

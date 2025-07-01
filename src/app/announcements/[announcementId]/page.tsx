@@ -9,9 +9,9 @@ interface Announcement {
   title: string;
   content: string;
   target: string;
-  section_id: number | null;
-  published_at: string;
-  published_by: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const AnnouncementDetail = () => {
@@ -22,9 +22,10 @@ const AnnouncementDetail = () => {
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const response = await api.get<{ success: boolean; data: Announcement }>(
-          `/announcements/${announcementId}`
-        );
+        const response = await api.get<{
+          success: boolean;
+          data: Announcement;
+        }>(`/announcements/${announcementId}`);
         if (response.data.success) {
           setAnnouncement(response.data.data);
         } else {
@@ -51,13 +52,25 @@ const AnnouncementDetail = () => {
   return (
     <div style={{ padding: 24 }}>
       <h1>Detalle del Anuncio</h1>
-      <p><strong>ID:</strong> {announcement.id}</p>
-      <p><strong>Título:</strong> {announcement.title}</p>
-      <p><strong>Contenido:</strong> {announcement.content}</p>
-      <p><strong>Target:</strong> {announcement.target}</p>
-      <p><strong>ID Sección:</strong> {announcement.section_id ?? "Global"}</p>
-      <p><strong>Publicado en:</strong> {new Date(announcement.published_at).toLocaleString()}</p>
-      <p><strong>Publicado por (ID Usuario):</strong> {announcement.published_by}</p>
+      <p>
+        <strong>ID:</strong> {announcement.id}
+      </p>
+      <p>
+        <strong>Título:</strong> {announcement.title}
+      </p>
+      <p>
+        <strong>Contenido:</strong> {announcement.content}
+      </p>
+      <p>
+        <strong>Target:</strong> {announcement.target}
+      </p>
+      <p>
+        <strong>Publicado en:</strong>{" "}
+        {new Date(announcement.created_at).toLocaleString()}
+      </p>
+      <p>
+        <strong>Publicado por (ID Usuario):</strong> {announcement.user_id}
+      </p>
     </div>
   );
 };

@@ -3,13 +3,11 @@ import api from "../../../lib/api";
 
 export interface AssignmentSubmissionData {
   assignment_id: number;
-  student_id: number;
+  student_user_id: number;
   file_url?: string;
   comment?: string;
-  submitted_at?: string;
   grade?: number;
   feedback?: string;
-  graded_by?: number;
 }
 
 interface AssignmentSubmissionBuilderProps {
@@ -21,21 +19,23 @@ export default function AssignmentSubmissionBuilder({
   assignmentSubmissionId,
   afterSubmit,
 }: AssignmentSubmissionBuilderProps) {
-  const [submissionData, setSubmissionData] = useState<AssignmentSubmissionData>({
-    assignment_id: 0,
-    student_id: 0,
-    file_url: "",
-    comment: "",
-    submitted_at: "",
-    grade: undefined,
-    feedback: "",
-    graded_by: undefined,
-  });
+  const [submissionData, setSubmissionData] =
+    useState<AssignmentSubmissionData>({
+      assignment_id: 0,
+      student_user_id: 0,
+      file_url: "",
+      comment: "",
+      grade: undefined,
+      feedback: "",
+    });
 
   const onSubmit = async (data: AssignmentSubmissionData) => {
     try {
       if (assignmentSubmissionId) {
-        await api.put(`/assignment-submissions/${assignmentSubmissionId}`, data);
+        await api.put(
+          `/assignment-submissions/${assignmentSubmissionId}`,
+          data
+        );
         alert("Entrega actualizada exitosamente");
       } else {
         await api.post("/assignment-submissions", data);
@@ -51,7 +51,9 @@ export default function AssignmentSubmissionBuilder({
   useEffect(() => {
     if (assignmentSubmissionId) {
       const fetchSubmission = async () => {
-        const response = await api.get(`/assignment-submissions/${assignmentSubmissionId}`);
+        const response = await api.get(
+          `/assignment-submissions/${assignmentSubmissionId}`
+        );
         setSubmissionData(response.data.data);
       };
       fetchSubmission();
@@ -61,15 +63,11 @@ export default function AssignmentSubmissionBuilder({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    let { name, value } = e.target;
-
-    if (name === "submitted_at" && value.length === 16) {
-      value = value + ":00";
-    }
+    const { name, value } = e.target;
 
     setSubmissionData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: name === "grade" ? parseFloat(value) || undefined : value,
     }));
   };
 
@@ -95,11 +93,11 @@ export default function AssignmentSubmissionBuilder({
         required
       />
 
-      <label>ID Estudiante:</label>
+      <label>ID Usuario Estudiante:</label>
       <input
         type="number"
-        name="student_id"
-        value={submissionData.student_id}
+        name="student_user_id"
+        value={submissionData.student_user_id}
         onChange={handleChange}
         required
       />
@@ -119,19 +117,11 @@ export default function AssignmentSubmissionBuilder({
         onChange={handleChange}
       />
 
-      <label>Fecha de Entrega:</label>
-      <input
-        type="datetime-local"
-        name="submitted_at"
-        value={submissionData.submitted_at || ""}
-        onChange={handleChange}
-      />
-
-      <label>Calificación:</label>
+      <label>Calificación (0-100):</label>
       <input
         type="number"
-        //step="0.01"
         name="grade"
+        step="0.01"
         value={submissionData.grade ?? ""}
         onChange={handleChange}
       />
@@ -140,14 +130,6 @@ export default function AssignmentSubmissionBuilder({
       <textarea
         name="feedback"
         value={submissionData.feedback || ""}
-        onChange={handleChange}
-      />
-
-      <label>Calificado por (ID Usuario):</label>
-      <input
-        type="number"
-        name="graded_by"
-        value={submissionData.graded_by ?? ""}
         onChange={handleChange}
       />
 

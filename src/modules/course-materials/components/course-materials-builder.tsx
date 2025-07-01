@@ -4,13 +4,11 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 export interface CourseMaterialData {
-  section_id: number;
-  published_by: number;
+  course_id: number;
   title: string;
   description?: string;
   type: string;
   url: string;
-  published_at?: string;
 }
 
 interface CourseMaterialsBuilderProps {
@@ -23,13 +21,11 @@ export default function CourseMaterialsBuilder({
   afterSubmit,
 }: CourseMaterialsBuilderProps) {
   const [materialData, setMaterialData] = useState<CourseMaterialData>({
-    section_id: 0,
-    published_by: 0,
+    course_id: 0,
     title: "",
     description: "",
     type: "",
     url: "",
-    published_at: "",
   });
 
   const onSubmit = async (data: CourseMaterialData) => {
@@ -59,12 +55,14 @@ export default function CourseMaterialsBuilder({
   }, [courseMaterialId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setMaterialData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "course_id" ? Number(value) : value,
     }));
   };
 
@@ -77,20 +75,11 @@ export default function CourseMaterialsBuilder({
     <form onSubmit={handleSubmit}>
       <h1>{courseMaterialId ? "Actualizar Material" : "Registrar Material"}</h1>
 
-      <label>ID Sección:</label>
+      <label>ID del Curso:</label>
       <input
         type="number"
-        name="section_id"
-        value={materialData.section_id}
-        onChange={handleChange}
-        required
-      />
-
-      <label>ID Publicado por:</label>
-      <input
-        type="number"
-        name="published_by"
-        value={materialData.published_by}
+        name="course_id"
+        value={materialData.course_id}
         onChange={handleChange}
         required
       />
@@ -124,7 +113,6 @@ export default function CourseMaterialsBuilder({
         <option value="video">Video</option>
         <option value="link">Enlace</option>
         <option value="document">Documento</option>
-        {/* Agrega más tipos si los usas */}
       </select>
 
       <label>URL del Material:</label>
@@ -134,14 +122,6 @@ export default function CourseMaterialsBuilder({
         value={materialData.url}
         onChange={handleChange}
         required
-      />
-
-      <label>Fecha de Publicación:</label>
-      <input
-        type="datetime-local"
-        name="published_at"
-        value={materialData.published_at || ""}
-        onChange={handleChange}
       />
 
       <button type="submit">

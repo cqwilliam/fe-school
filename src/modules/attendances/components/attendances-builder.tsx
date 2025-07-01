@@ -3,11 +3,10 @@ import api from "../../../lib/api";
 
 export interface AttendanceData {
   class_session_id: number;
-  student_id: number;
+  student_user_id: number;
+  teacher_user_id: number;
   status: "present" | "absent" | "late" | "justified";
-  recorded_time?: string;
   justification?: string;
-  recorded_by: number;
 }
 
 interface AttendanceBuilderProps {
@@ -21,11 +20,10 @@ export default function AttendanceBuilder({
 }: AttendanceBuilderProps) {
   const [attendanceData, setAttendanceData] = useState<AttendanceData>({
     class_session_id: 0,
-    student_id: 0,
+    student_user_id: 0,
+    teacher_user_id: 0,
     status: "present",
-    recorded_time: "",
     justification: "",
-    recorded_by: 0,
   });
 
   const onSubmit = async (attendanceData: AttendanceData) => {
@@ -57,15 +55,16 @@ export default function AttendanceBuilder({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    let { name, value } = e.target;
-
-    if (name === "recorded_time") {
-      value = value + ":00";
-    }
+    const { name, value } = e.target;
 
     setAttendanceData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]:
+        name === "class_session_id" ||
+        name === "student_user_id" ||
+        name === "teacher_user_id"
+          ? parseInt(value)
+          : value,
     }));
   };
 
@@ -90,8 +89,17 @@ export default function AttendanceBuilder({
       <label>ID del Estudiante:</label>
       <input
         type="number"
-        name="student_id"
-        value={attendanceData.student_id}
+        name="student_user_id"
+        value={attendanceData.student_user_id}
+        onChange={handleChange}
+        required
+      />
+
+      <label>ID del Profesor:</label>
+      <input
+        type="number"
+        name="teacher_user_id"
+        value={attendanceData.teacher_user_id}
         onChange={handleChange}
         required
       />
@@ -109,29 +117,12 @@ export default function AttendanceBuilder({
         <option value="justified">Justificado</option>
       </select>
 
-      <label>Hora Registrada (HH:MM:SS):</label>
-      <input
-        type="time"
-        name="recorded_time"
-        value={attendanceData.recorded_time || ""}
-        onChange={handleChange}
-      />
-
       <label>Justificación:</label>
       <input
         type="text"
         name="justification"
         value={attendanceData.justification || ""}
         onChange={handleChange}
-      />
-
-      <label>Registrado por (ID Usuario):</label>
-      <input
-        type="number"
-        name="recorded_by"
-        value={attendanceData.recorded_by}
-        onChange={handleChange}
-        required
       />
 
       <button type="submit">

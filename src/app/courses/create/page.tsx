@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const CourseCreate = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const courseId = searchParams.get("courseId"); // opcional, por si quieres precargar algo
+  const courseId = searchParams.get("courseId");
 
   const handleSubmit = () => {
     router.push("/courses");

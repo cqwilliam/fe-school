@@ -39,6 +39,22 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
+  const adminLinks = [
+    { href: "/crearUsuario", label: "Crear nuevo usuario" },
+    { href: "/users", label: "Ver usuarios" },
+    { href: "/teachers", label: "Ver docentes" },
+    { href: "/students", label: "Ver estudiantes" },
+    { href: "/guardians", label: "Ver Apoderados" },
+    { href: "/studentsGuardians", label: "Ver Apoderados estudiante" },
+    { href: "/academicsPeriods", label: "Ver periodos academicos" },
+    { href: "/courses", label: "Ver cursos" },
+    { href: "/coursesSections", label: "Ver secciones de curso" },
+    { href: "/teachersSections", label: "Ver secciones de docentes" },
+    { href: "/enrollments", label: "Ver Matriculas" },
+    { href: "/schedules", label: "Ver Horario" },
+    { href: "/evaluationsTypes", label: "Ver tipos de Evaluacion" },
+  ];
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -238,158 +254,14 @@ export default function ProfilePage() {
           </button>
 
           {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/crearUsuario" className="text-blue-600 underline">
-                Crear nuevo usuario
-              </a>
-            </div>
-          )}
-
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/users" className="text-blue-600 underline">
-                Ver usuarios
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/teachers" className="text-blue-600 underline">
-                Ver docentes
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/students" className="text-blue-600 underline">
-                Ver estudiantes
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/guardians" className="text-blue-600 underline">
-                Ver Apoderados
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/studentsGuardians" className="text-blue-600 underline">
-                Ver Apoderados estudiante
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/academicsPeriods" className="text-blue-600 underline">
-                Ver periodos academicos
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/courses" className="text-blue-600 underline">
-                Ver cursos
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/coursesSections" className="text-blue-600 underline">
-                Ver secciones de curso
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/teachersSections" className="text-blue-600 underline">
-                Ver secciones de docentes
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/enrollments" className="text-blue-600 underline">
-                Ver Matriculas
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/schedules" className="text-blue-600 underline">
-                Ver Horario
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/evaluationsTypes" className="text-blue-600 underline">
-                Ver tipos de Evaluacion
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/evaluations" className="text-blue-600 underline">
-                Ver Evaluacion
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/grades" className="text-blue-600 underline">
-                Ver calificaciones
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/classSessions" className="text-blue-600 underline">
-                Ver sesiones de clases
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/attendances" className="text-blue-600 underline">
-                Ver Asistencia
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/assignments" className="text-blue-600 underline">
-                Ver tareas
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/assignmentSubmissions" className="text-blue-600 underline">
-                Ver Entrega de tareas
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/courseMaterials" className="text-blue-600 underline">
-                Ver Materiales del curso
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/announcements" className="text-blue-600 underline">
-                Ver Comunicados
-              </a>
-            </div>
-          )}
-          {user.role_name === "Administrador" && (
-            <div className="mt-4">
-              <a href="/messages" className="text-blue-600 underline">
-                Ver Mensajes
-              </a>
+            <div className="mt-6 space-y-2">
+              {adminLinks.map((link) => (
+                <div key={link.href}>
+                  <a href={link.href} className="text-blue-600 underline">
+                    {link.label}
+                  </a>
+                </div>
+              ))}
             </div>
           )}
         </div>

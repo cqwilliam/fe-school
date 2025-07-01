@@ -6,12 +6,11 @@ import api from "../../lib/api";
 
 interface Assignment {
   id: number;
-  section_id: number;
+  period_section_id: number;
   title: string;
   description?: string;
-  published_at?: string;
   due_date: string;
-  published_by: number;
+  teacher_user_id: number;
 }
 
 const Assignments = () => {
@@ -29,7 +28,9 @@ const Assignments = () => {
           setError("No se pudo obtener la lista de asignaciones.");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Error al cargar asignaciones.");
+        setError(
+          err.response?.data?.message || "Error al cargar asignaciones."
+        );
       }
     };
     fetchAssignments();
@@ -46,7 +47,7 @@ const Assignments = () => {
         maxWidth: 720,
         margin: "0 auto",
         fontFamily: "'Inter', sans-serif",
-        color: "#000000",
+        color: "#ffffff",
       }}
     >
       <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Asignaciones</h1>
@@ -67,17 +68,18 @@ const Assignments = () => {
               padding: "16px",
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-              backgroundColor: "#fdfdfd",
+              backgroundColor: "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               {assignment.title}
             </strong>
-            <p>ID Sección: {assignment.section_id}</p>
-            {assignment.description && <p>Descripción: {assignment.description}</p>}
-            {assignment.published_at && <p>Publicado: {assignment.published_at}</p>}
+            <p>ID Sección del Período: {assignment.period_section_id}</p>
+            {assignment.description && (
+              <p>Descripción: {assignment.description}</p>
+            )}
             <p>Fecha Límite: {assignment.due_date}</p>
-            <p>Publicado por: {assignment.published_by}</p>
+            <p>Profesor (User ID): {assignment.teacher_user_id}</p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button

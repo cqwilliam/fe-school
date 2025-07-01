@@ -5,20 +5,23 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 interface EvaluationData {
-  section_id: number;
+  id: number;
+  period_section_id: number;
   evaluation_type_id: number;
-  academic_period_id: number;
+  teacher_user_id: number;
   title: string;
   description?: string;
-  weight: number;
-  date?: string;
   due_date?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const EvaluationDetail = () => {
   const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { evaluationsId } = useParams();
+  const params = useParams();
+
+  const evaluationId = params?.evaluationsId;
 
   useEffect(() => {
     const fetchEvaluation = async () => {
@@ -26,7 +29,7 @@ const EvaluationDetail = () => {
         const response = await api.get<{
           success: boolean;
           data: EvaluationData;
-        }>(`/evaluations/${evaluationsId}`);
+        }>(`/evaluations/${evaluationId}`);
 
         if (response.data.success) {
           setEvaluation(response.data.data);
@@ -34,14 +37,16 @@ const EvaluationDetail = () => {
           setError("No se pudo obtener la evaluación.");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Error al cargar la evaluación.");
+        setError(
+          err.response?.data?.message || "Error al cargar la evaluación."
+        );
       }
     };
 
-    if (evaluationsId) {
+    if (evaluationId) {
       fetchEvaluation();
     }
-  }, [evaluationsId]);
+  }, [evaluationId]);
 
   if (error) {
     return <div style={{ padding: 24, color: "red" }}>Error: {error}</div>;
@@ -53,15 +58,37 @@ const EvaluationDetail = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1>Detalle de Evaluación</h1>
-      <p><strong>ID de Sección:</strong> {evaluation.section_id}</p>
-      <p><strong>ID Tipo de Evaluación:</strong> {evaluation.evaluation_type_id}</p>
-      <p><strong>ID Periodo Académico:</strong> {evaluation.academic_period_id}</p>
-      <p><strong>Título:</strong> {evaluation.title}</p>
-      <p><strong>Descripción:</strong> {evaluation.description || "N/A"}</p>
-      <p><strong>Peso:</strong> {evaluation.weight}%</p>
-      <p><strong>Fecha de Evaluación:</strong> {evaluation.date || "N/A"}</p>
-      <p><strong>Fecha Límite:</strong> {evaluation.due_date || "N/A"}</p>
+      <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>
+        Detalle de Evaluación
+      </h1>
+      <p>
+        <strong>ID:</strong> {evaluation.id}
+      </p>
+      <p>
+        <strong>Period Section ID:</strong> {evaluation.period_section_id}
+      </p>
+      <p>
+        <strong>Tipo de Evaluación ID:</strong> {evaluation.evaluation_type_id}
+      </p>
+      <p>
+        <strong>Docente (User ID):</strong> {evaluation.teacher_user_id}
+      </p>
+      <p>
+        <strong>Título:</strong> {evaluation.title}
+      </p>
+      <p>
+        <strong>Descripción:</strong> {evaluation.description || "N/A"}
+      </p>
+      <p>
+        <strong>Fecha Límite:</strong>{" "}
+        {evaluation.due_date || "No especificada"}
+      </p>
+      <p>
+        <strong>Creado en:</strong> {evaluation.created_at}
+      </p>
+      <p>
+        <strong>Última Actualización:</strong> {evaluation.updated_at}
+      </p>
     </div>
   );
 };

@@ -169,8 +169,8 @@ export default function UserBuilder({ userId, afterSubmit }: UserBuilderProps) {
       <label>Rol:</label>
       <select name="role_id" value={userData.role_id} onChange={handleChange}>
         <option value={1}>Administrador</option>
-        <option value={2}>Docente</option>
-        <option value={3}>Estudiante</option>
+        <option value={2}>Estudiante</option>
+        <option value={3}>Docente</option>
         <option value={4}>Apoderado</option>
       </select>
 

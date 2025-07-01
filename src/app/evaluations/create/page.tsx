@@ -9,7 +9,7 @@ const EvaluationCreate = () => {
   const evaluationId = searchParams.get("evaluationId");
 
   const handleSubmit = () => {
-    router.push("/evaluations"); // Ajusta la ruta según tu estructura
+    router.push("/evaluations"); 
   };
 
   return (

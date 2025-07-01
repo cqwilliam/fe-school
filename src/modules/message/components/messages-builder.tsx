@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 export interface MessageData {
-  sender_id: number;
-  recipient_id: number;
+  sender_user_id: number;
+  target_user_id: number;
   content: string;
-  sent_at?: string;
   is_read?: boolean;
-  read_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface MessageBuilderProps {
@@ -20,12 +20,10 @@ export default function MessageBuilder({
   afterSubmit,
 }: MessageBuilderProps) {
   const [messageData, setMessageData] = useState<MessageData>({
-    sender_id: 0,
-    recipient_id: 0,
+    sender_user_id: 0,
+    target_user_id: 0,
     content: "",
-    sent_at: "",
     is_read: false,
-    read_at: null,
   });
 
   const onSubmit = async (messageData: MessageData) => {
@@ -55,13 +53,15 @@ export default function MessageBuilder({
   }, [messageId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
 
     setMessageData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: name === "is_read" ? value === "true" : value,
     }));
   };
 
@@ -77,8 +77,8 @@ export default function MessageBuilder({
       <label>Remitente (ID):</label>
       <input
         type="number"
-        name="sender_id"
-        value={messageData.sender_id}
+        name="sender_user_id"
+        value={messageData.sender_user_id}
         onChange={handleChange}
         required
       />
@@ -86,8 +86,8 @@ export default function MessageBuilder({
       <label>Destinatario (ID):</label>
       <input
         type="number"
-        name="recipient_id"
-        value={messageData.recipient_id}
+        name="target_user_id"
+        value={messageData.target_user_id}
         onChange={handleChange}
         required
       />
@@ -111,14 +111,6 @@ export default function MessageBuilder({
             <option value="false">No</option>
             <option value="true">Sí</option>
           </select>
-
-          <label>Leído en (opcional):</label>
-          <input
-            type="datetime-local"
-            name="read_at"
-            value={messageData.read_at || ""}
-            onChange={handleChange}
-          />
         </>
       )}
 

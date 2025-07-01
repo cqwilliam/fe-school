@@ -62,7 +62,9 @@ export default function EnrollmentBuilder({
     setEnrollmentData((prevData) => ({
       ...prevData,
       [name]:
-        name === "student_id" || name === "section_id" || name === "academic_period_id"
+        name === "student_id" ||
+        name === "section_id" ||
+        name === "academic_period_id"
           ? parseInt(value)
           : value,
     }));

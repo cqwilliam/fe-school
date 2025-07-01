@@ -7,13 +7,11 @@ import api from "../../lib/api";
 interface AssignmentSubmission {
   id: number;
   assignment_id: number;
-  student_id: number;
+  student_user_id: number;
   file_url?: string;
   comment?: string;
-  submitted_at: string;
   grade?: number;
   feedback?: string;
-  graded_by?: number;
 }
 
 const AssignmentSubmissions = () => {
@@ -51,7 +49,7 @@ const AssignmentSubmissions = () => {
         maxWidth: 720,
         margin: "0 auto",
         fontFamily: "'Inter', sans-serif",
-        color: "#000000",
+        color: "#ffffff",
       }}
     >
       <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
@@ -74,15 +72,14 @@ const AssignmentSubmissions = () => {
               padding: "16px",
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
-              backgroundColor: "#fdfdfd",
+              backgroundColor: "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               ID Entrega: {submission.id}
             </strong>
             <p>Asignación: {submission.assignment_id}</p>
-            <p>Estudiante: {submission.student_id}</p>
-            <p>Fecha de entrega: {submission.submitted_at}</p>
+            <p>Estudiante (ID usuario): {submission.student_user_id}</p>
             {submission.file_url && (
               <p>
                 Archivo:{" "}
@@ -101,9 +98,6 @@ const AssignmentSubmissions = () => {
             )}
             {submission.feedback && (
               <p>Retroalimentación: {submission.feedback}</p>
-            )}
-            {submission.graded_by !== undefined && (
-              <p>Calificado por (ID Usuario): {submission.graded_by}</p>
             )}
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>

@@ -9,6 +9,13 @@ interface User {
   first_name: string;
   last_name: string;
   age_name:number;
+  user_name:string;
+  email: string;
+  dni: string;
+  photo_url: string;
+  phone: string;
+  address: string;
+  role_name:string;
 }
 
 const Users = () => {
@@ -66,10 +73,11 @@ const Users = () => {
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
               backgroundColor: "#fafafa",
+              color : "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px", color: "#000000" }}>
-              {user.id} {user.first_name} {user.last_name} {user.age_name}
+              {user.id} {user.first_name} {user.last_name} {user.age_name} {user.role_name}
             </strong>
             <div style={{ display: "flex", gap: "12px" }}>
               <button

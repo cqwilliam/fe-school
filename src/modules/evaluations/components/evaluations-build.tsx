@@ -4,13 +4,11 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 export interface EvaluationData {
-  section_id: number;
+  period_section_id: number;
   evaluation_type_id: number;
-  academic_period_id: number;
+  teacher_user_id: number;
   title: string;
   description?: string;
-  weight: number;
-  date?: string;
   due_date?: string;
 }
 
@@ -24,13 +22,11 @@ export default function EvaluationBuilder({
   afterSubmit,
 }: EvaluationBuilderProps) {
   const [data, setData] = useState<EvaluationData>({
-    section_id: 0,
+    period_section_id: 0,
     evaluation_type_id: 0,
-    academic_period_id: 0,
+    teacher_user_id: 0,
     title: "",
     description: "",
-    weight: 0,
-    date: "",
     due_date: "",
   });
 
@@ -66,7 +62,9 @@ export default function EvaluationBuilder({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setData((prev) => ({
@@ -87,8 +85,8 @@ export default function EvaluationBuilder({
       <label>ID de la Sección:</label>
       <input
         type="number"
-        name="section_id"
-        value={data.section_id}
+        name="period_section_id"
+        value={data.period_section_id}
         onChange={handleChange}
         required
       />
@@ -105,8 +103,8 @@ export default function EvaluationBuilder({
       <label>ID del Periodo Académico:</label>
       <input
         type="number"
-        name="academic_period_id"
-        value={data.academic_period_id}
+        name="teacher_user_id"
+        value={data.teacher_user_id}
         onChange={handleChange}
         required
       />
@@ -125,25 +123,6 @@ export default function EvaluationBuilder({
       <textarea
         name="description"
         value={data.description || ""}
-        onChange={handleChange}
-      />
-
-      <label>Peso (%):</label>
-      <input
-        type="number"
-        name="weight"
-        value={data.weight}
-        min={0}
-        step="0.01"
-        onChange={handleChange}
-        required
-      />
-
-      <label>Fecha de Evaluación:</label>
-      <input
-        type="date"
-        name="date"
-        value={data.date || ""}
         onChange={handleChange}
       />
 

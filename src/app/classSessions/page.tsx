@@ -6,12 +6,12 @@ import api from '../../lib/api';
 
 interface ClassSession {
   id: number;
-  section_id: number;
+  period_section_id: number;
+  teacher_user_id: number;
   topic: string | null;
   date: string;
   start_time: string;
   end_time: string;
-  created_by: number | null;
 }
 
 const ClassSessions = () => {
@@ -72,8 +72,12 @@ const ClassSessions = () => {
             }}
           >
             <strong style={{ fontSize: '18px', marginBottom: '8px' }}>
-              ID: {classSession.id} | Sección ID: {classSession.section_id} | Tema: {classSession.topic || 'Sin tema'}
+              ID: {classSession.id} | Sección Periodo ID: {classSession.period_section_id} | Tema: {classSession.topic || 'Sin tema'}
             </strong>
+            <p style={{ margin: '4px 0' }}>
+              Fecha: {classSession.date} | Hora: {classSession.start_time} - {classSession.end_time}
+            </p>
+            <p style={{ margin: '4px 0' }}>Profesor ID: {classSession.teacher_user_id}</p>
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               <button
                 style={{

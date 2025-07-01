@@ -5,12 +5,12 @@ import api from "../../../lib/api";
 
 export interface ScheduleData {
   id?: number;
-  section_id: number;
+  period_section_id: number;
+  course_id: number;
+  teacher_user_id: number;
   day_of_week: string;
   start_time: string;
   end_time: string;
-  is_recurring: boolean;
-  specific_date?: string | null;
 }
 
 interface ScheduleBuilderProps {
@@ -23,12 +23,12 @@ export default function ScheduleBuilder({
   afterSubmit,
 }: ScheduleBuilderProps) {
   const [scheduleData, setScheduleData] = useState<ScheduleData>({
-    section_id: 0,
+    period_section_id: 0,
+    course_id: 0,
+    teacher_user_id: 0,
     day_of_week: "",
     start_time: "",
     end_time: "",
-    is_recurring: true,
-    specific_date: null,
   });
 
   const onSubmit = async (data: ScheduleData) => {
@@ -50,8 +50,12 @@ export default function ScheduleBuilder({
   useEffect(() => {
     if (scheduleId) {
       const fetchSchedule = async () => {
-        const response = await api.get(`/schedules/${scheduleId}`);
-        setScheduleData(response.data.data);
+        try {
+          const response = await api.get(`/schedules/${scheduleId}`);
+          setScheduleData(response.data.data);
+        } catch (error: any) {
+          alert(`Error al cargar el horario: ${error.message}`);
+        }
       };
       fetchSchedule();
     }
@@ -77,11 +81,29 @@ export default function ScheduleBuilder({
     <form onSubmit={handleSubmit}>
       <h1>{scheduleId ? "Actualizar Horario" : "Crear Horario"}</h1>
 
-      <label>ID de la Sección:</label>
+      <label>ID de la Sección del Periodo:</label>
       <input
         type="number"
-        name="section_id"
-        value={scheduleData.section_id}
+        name="period_section_id"
+        value={scheduleData.period_section_id}
+        onChange={handleChange}
+        required
+      />
+
+      <label>ID del Curso:</label>
+      <input
+        type="number"
+        name="course_id"
+        value={scheduleData.course_id}
+        onChange={handleChange}
+        required
+      />
+
+      <label>ID del Profesor (Usuario):</label>
+      <input
+        type="number"
+        name="teacher_user_id"
+        value={scheduleData.teacher_user_id}
         onChange={handleChange}
         required
       />
@@ -119,24 +141,6 @@ export default function ScheduleBuilder({
         value={scheduleData.end_time}
         onChange={handleChange}
         required
-      />
-
-      <label>
-        <input
-          type="checkbox"
-          name="is_recurring"
-          checked={scheduleData.is_recurring}
-          onChange={handleChange}
-        />
-        ¿Recurrente?
-      </label>
-
-      <label>Fecha específica (opcional):</label>
-      <input
-        type="date"
-        name="specific_date"
-        value={scheduleData.specific_date ?? ""}
-        onChange={handleChange}
       />
 
       <button type="submit">

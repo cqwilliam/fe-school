@@ -73,10 +73,19 @@ const Enrollments = () => {
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               ID: {enrollment.id}
             </strong>
-            <p style={{ margin: "4px 0" }}>Estudiante ID: {enrollment.student_id}</p>
-            <p style={{ margin: "4px 0" }}>Sección ID: {enrollment.section_id}</p>
-            <p style={{ margin: "4px 0" }}>Periodo Académico ID: {enrollment.academic_period_id}</p>
-            <p style={{ margin: "4px 0" }}>Fecha de Matrícula: {new Date(enrollment.enrolled_at).toLocaleString()}</p>
+            <p style={{ margin: "4px 0" }}>
+              Estudiante ID: {enrollment.student_id}
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              Sección ID: {enrollment.section_id}
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              Periodo Académico ID: {enrollment.academic_period_id}
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              Fecha de Matrícula:{" "}
+              {new Date(enrollment.enrolled_at).toLocaleString()}
+            </p>
             <p style={{ margin: "4px 0" }}>Estado: {enrollment.status}</p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>

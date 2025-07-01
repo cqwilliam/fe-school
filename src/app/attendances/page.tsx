@@ -7,11 +7,11 @@ import api from "../../lib/api";
 interface Attendance {
   id: number;
   class_session_id: number;
-  student_id: number;
+  student_user_id: number;
+  teacher_user_id: number;
   status: "present" | "absent" | "late" | "justified";
-  recorded_time: string | null;
   justification: string | null;
-  recorded_by: number;
+  created_at: string;
 }
 
 const Attendances = () => {
@@ -47,11 +47,9 @@ const Attendances = () => {
         maxWidth: 720,
         margin: "0 auto",
         fontFamily: "'Inter', sans-serif",
-        color: "#000000",
+        color: "#ffffff",
       }}
     >
-      {/* <AttendanceBuilder/> */}
-
       <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Asistencias</h1>
 
       {error ? (
@@ -71,17 +69,22 @@ const Attendances = () => {
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
               backgroundColor: "#fdfdfd",
+              color: "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               ID Asistencia: {attendance.id}
             </strong>
-            <p>Clase: {attendance.class_session_id}</p>
-            <p>Estudiante: {attendance.student_id}</p>
+            <p>ID Clase: {attendance.class_session_id}</p>
+            <p>ID Estudiante: {attendance.student_user_id}</p>
+            <p>ID Profesor: {attendance.teacher_user_id}</p>
             <p>Estado: {attendance.status}</p>
-            {attendance.recorded_time && <p>Hora registrada: {attendance.recorded_time}</p>}
-            {attendance.justification && <p>Justificación: {attendance.justification}</p>}
-            <p>Registrado por (Usuario ID): {attendance.recorded_by}</p>
+            {attendance.justification && (
+              <p>Justificación: {attendance.justification}</p>
+            )}
+            <p>
+              Registrado el: {new Date(attendance.created_at).toLocaleString()}
+            </p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button

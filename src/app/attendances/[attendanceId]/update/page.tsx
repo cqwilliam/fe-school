@@ -8,13 +8,14 @@ const AttendanceUpdate = () => {
   const router = useRouter();
 
   const handleSubmit = () => {
-   
-      router.push("/attendances"); 
-    }
-  
+    router.push("/attendances");
+  };
 
-  return(
-    <AttendanceBuilder attendanceId={attendanceId as string } afterSubmit={handleSubmit} />
+  return (
+    <AttendanceBuilder
+      attendanceId={attendanceId as string}
+      afterSubmit={handleSubmit}
+    />
   );
 };
 

@@ -8,7 +8,7 @@ const EvaluationUpdate = () => {
   const router = useRouter();
 
   const handleSubmit = () => {
-    router.push("/evaluations"); // Ajusta esta ruta según tu estructura
+    router.push("/evaluations");
   };
 
   return (

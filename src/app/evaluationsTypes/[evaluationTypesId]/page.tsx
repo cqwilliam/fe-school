@@ -12,7 +12,9 @@ interface EvaluationType {
 }
 
 const EvaluationType = () => {
-  const [evaluationType, setEvaluationType] = useState<EvaluationType | null>(null);
+  const [evaluationType, setEvaluationType] = useState<EvaluationType | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const { evaluationTypesId } = useParams();
 
@@ -51,10 +53,19 @@ const EvaluationType = () => {
       <h1 style={{ fontSize: "1.8rem", marginBottom: "16px" }}>
         Tipo de Evaluación
       </h1>
-      <p><strong>ID:</strong> {evaluationType.id}</p>
-      <p><strong>Nombre:</strong> {evaluationType.name}</p>
-      <p><strong>Descripción:</strong> {evaluationType.description || "No especificada"}</p>
-      <p><strong>Peso:</strong> {evaluationType.weight}%</p>
+      <p>
+        <strong>ID:</strong> {evaluationType.id}
+      </p>
+      <p>
+        <strong>Nombre:</strong> {evaluationType.name}
+      </p>
+      <p>
+        <strong>Descripción:</strong>{" "}
+        {evaluationType.description || "No especificada"}
+      </p>
+      <p>
+        <strong>Peso:</strong> {evaluationType.weight}%
+      </p>
     </div>
   );
 };

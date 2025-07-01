@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 export interface ClassSessionData {
-  section_id: number;
+  period_section_id: number;
+  teacher_user_id: number;
   topic?: string;
   date: string;
   start_time: string;
   end_time: string;
-  created_by?: number | null;
 }
 
 interface ClassSessionBuilderProps {
@@ -22,12 +22,12 @@ export default function ClassSessionBuilder({
   afterSubmit,
 }: ClassSessionBuilderProps) {
   const [classSessionData, setClassSessionData] = useState<ClassSessionData>({
-    section_id: 0,
+    period_section_id: 0,
     topic: "",
     date: "",
     start_time: "",
     end_time: "",
-    created_by: null,
+    teacher_user_id: 0,
   });
 
   useEffect(() => {
@@ -66,17 +66,13 @@ export default function ClassSessionBuilder({
   ) => {
     const { name, value } = e.target;
 
-    if (name === "created_by") {
-      setClassSessionData((prev) => ({
-        ...prev,
-        created_by: value === "" ? null : Number(value),
-      }));
-    } else {
-      setClassSessionData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setClassSessionData((prev) => ({
+      ...prev,
+      [name]:
+        name === "teacher_user_id" || name === "period_section_id"
+          ? Number(value)
+          : value,
+    }));
   };
 
   return (
@@ -92,11 +88,11 @@ export default function ClassSessionBuilder({
           : "Crear Sesión de Clase"}
       </h1>
 
-      <label>Id Sección:</label>
+      <label>Id Sección del Periodo:</label>
       <input
         type="number"
-        name="section_id"
-        value={classSessionData.section_id}
+        name="period_section_id"
+        value={classSessionData.period_section_id}
         onChange={handleChange}
         required
       />
@@ -136,12 +132,13 @@ export default function ClassSessionBuilder({
         required
       />
 
-      <label>Creado por:</label>
+      <label>Id Profesor:</label>
       <input
         type="number"
-        name="created_by"
-        value={classSessionData.created_by ?? ""}
+        name="teacher_user_id"
+        value={classSessionData.teacher_user_id}
         onChange={handleChange}
+        required
       />
 
       <button type="submit">

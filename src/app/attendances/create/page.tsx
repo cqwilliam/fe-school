@@ -9,7 +9,7 @@ const AttendanceCreate = () => {
   const attendanceId = searchParams.get("attendanceId");
 
   const handleAfterSubmit = () => {
-    router.push("/profile");
+    router.push("/atttendances");
   };
 
   return (

@@ -34,7 +34,8 @@ const EvaluationTypes = () => {
   }, []);
 
   const handleShow = (id: number) => router.push(`/evaluationsTypes/${id}`);
-  const handleUpdate = (id: number) => router.push(`/evaluationsTypes/${id}/update`);
+  const handleUpdate = (id: number) =>
+    router.push(`/evaluationsTypes/${id}/update`);
   const handleCreate = () => router.push("/evaluationsTypes/create");
 
   return (
@@ -76,9 +77,7 @@ const EvaluationTypes = () => {
             <p style={{ margin: "4px 0" }}>
               Descripción: {type.description || "No especificada"}
             </p>
-            <p style={{ margin: "4px 0" }}>
-              Peso: {type.weight}%
-            </p>
+            <p style={{ margin: "4px 0" }}>Peso: {type.weight}%</p>
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button
                 style={{

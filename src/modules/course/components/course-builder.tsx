@@ -8,8 +8,6 @@ export interface CourseData {
   code: string;
   name: string;
   description?: string;
-  credits: number;
-  academic_period_id: number;
 }
 
 interface CourseBuilderProps {
@@ -25,8 +23,6 @@ export default function CourseBuilder({
     code: "",
     name: "",
     description: "",
-    credits: 0,
-    academic_period_id: 0,
   });
 
   const onSubmit = async (courseData: CourseData) => {
@@ -56,12 +52,14 @@ export default function CourseBuilder({
   }, [courseId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setCourseData((prevData) => ({
       ...prevData,
-      [name]: name === "credits" || name === "academic_period_id" ? parseInt(value) : value,
+      [name]: value,
     }));
   };
 
@@ -100,25 +98,6 @@ export default function CourseBuilder({
         value={courseData.description || ""}
         onChange={handleChange}
         rows={4}
-      />
-
-      <label>Créditos:</label>
-      <input
-        type="number"
-        name="credits"
-        value={courseData.credits}
-        onChange={handleChange}
-        min={0}
-        required
-      />
-
-      <label>ID del Período Académico:</label>
-      <input
-        type="number"
-        name="academic_period_id"
-        value={courseData.academic_period_id}
-        onChange={handleChange}
-        required
       />
 
       <button type="submit">

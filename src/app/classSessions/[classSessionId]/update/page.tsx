@@ -9,7 +9,7 @@ const ClassSessionUpdate = () => {
   const router = useRouter();
 
   const handleSubmit = () => {
-    router.push("/class-sessions"); // Ajusta esta ruta si usas otra para listar/ver sesiones
+    router.push("/class-sessions"); 
   };
 
   return (

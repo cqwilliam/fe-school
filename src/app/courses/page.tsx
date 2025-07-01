@@ -9,8 +9,6 @@ interface Course {
   code: string;
   name: string;
   description?: string;
-  credits: number;
-  academic_period_id: number;
 }
 
 const Courses = () => {
@@ -70,16 +68,23 @@ const Courses = () => {
               backgroundColor: "#fafafa",
             }}
           >
-            <strong style={{ fontSize: "18px", marginBottom: "8px", color: "#000000" }}>
-              {course.code} - {course.name} ({course.credits} créditos)
+            <strong
+              style={{
+                fontSize: "18px",
+                marginBottom: "8px",
+                color: "#000000",
+              }}
+            >
+              {course.code} - {course.name}
             </strong>
-            <p style={{ marginBottom: "8px", color: "#444" }}>{course.description}</p>
-            <span style={{ fontSize: "14px", color: "#666" }}>
-              Periodo Académico ID: {course.academic_period_id}
-            </span>
+            <p style={{ marginBottom: "8px", color: "#444" }}>
+              {course.description}
+            </p>
             <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
               <button onClick={() => handleShow(course.id)}>Ver</button>
-              <button onClick={() => handleUpdate(course.id)}>Actualizar</button>
+              <button onClick={() => handleUpdate(course.id)}>
+                Actualizar
+              </button>
             </div>
           </div>
         ))

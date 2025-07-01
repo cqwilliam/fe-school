@@ -6,12 +6,11 @@ import api from "../../../lib/api";
 
 interface Assignment {
   id: number;
-  section_id: number;
+  period_section_id: number;
   title: string;
   description?: string;
-  published_at?: string;
   due_date: string;
-  published_by: number;
+  teacher_user_id: number;
 }
 
 const Assignment = () => {
@@ -31,7 +30,9 @@ const Assignment = () => {
           setError("No se pudo obtener la asignación.");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Error al cargar la asignación.");
+        setError(
+          err.response?.data?.message || "Error al cargar la asignación."
+        );
       }
     };
 
@@ -51,13 +52,24 @@ const Assignment = () => {
   return (
     <div style={{ padding: 24 }}>
       <h1>Detalle de Asignación</h1>
-      <p><strong>ID:</strong> {assignment.id}</p>
-      <p><strong>ID Sección:</strong> {assignment.section_id}</p>
-      <p><strong>Título:</strong> {assignment.title}</p>
-      <p><strong>Descripción:</strong> {assignment.description || "Ninguna"}</p>
-      <p><strong>Publicado:</strong> {assignment.published_at || "No publicado"}</p>
-      <p><strong>Fecha límite:</strong> {assignment.due_date}</p>
-      <p><strong>Publicado por (ID Usuario):</strong> {assignment.published_by}</p>
+      <p>
+        <strong>ID:</strong> {assignment.id}
+      </p>
+      <p>
+        <strong>ID Sección del Período:</strong> {assignment.period_section_id}
+      </p>
+      <p>
+        <strong>Título:</strong> {assignment.title}
+      </p>
+      <p>
+        <strong>Descripción:</strong> {assignment.description || "Ninguna"}
+      </p>
+      <p>
+        <strong>Fecha límite:</strong> {assignment.due_date}
+      </p>
+      <p>
+        <strong>Profesor (ID Usuario):</strong> {assignment.teacher_user_id}
+      </p>
     </div>
   );
 };

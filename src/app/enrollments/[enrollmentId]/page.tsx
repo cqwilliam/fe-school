@@ -30,7 +30,9 @@ const EnrollmentDetail = () => {
           setError("No se pudo obtener la matrícula.");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Error al cargar la matrícula.");
+        setError(
+          err.response?.data?.message || "Error al cargar la matrícula."
+        );
       }
     };
 
@@ -49,13 +51,29 @@ const EnrollmentDetail = () => {
 
   return (
     <div style={{ padding: 24, fontFamily: "'Inter', sans-serif" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Detalle de Matrícula</h1>
-      <p><strong>ID:</strong> {enrollment.id}</p>
-      <p><strong>ID del Estudiante:</strong> {enrollment.student_id}</p>
-      <p><strong>ID de la Sección:</strong> {enrollment.section_id}</p>
-      <p><strong>ID del Periodo Académico:</strong> {enrollment.academic_period_id}</p>
-      <p><strong>Fecha de Matrícula:</strong> {new Date(enrollment.enrolled_at).toLocaleString()}</p>
-      <p><strong>Estado:</strong> {enrollment.status}</p>
+      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
+        Detalle de Matrícula
+      </h1>
+      <p>
+        <strong>ID:</strong> {enrollment.id}
+      </p>
+      <p>
+        <strong>ID del Estudiante:</strong> {enrollment.student_id}
+      </p>
+      <p>
+        <strong>ID de la Sección:</strong> {enrollment.section_id}
+      </p>
+      <p>
+        <strong>ID del Periodo Académico:</strong>{" "}
+        {enrollment.academic_period_id}
+      </p>
+      <p>
+        <strong>Fecha de Matrícula:</strong>{" "}
+        {new Date(enrollment.enrolled_at).toLocaleString()}
+      </p>
+      <p>
+        <strong>Estado:</strong> {enrollment.status}
+      </p>
     </div>
   );
 };

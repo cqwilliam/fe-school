@@ -6,12 +6,12 @@ import api from "../../lib/api";
 
 interface Schedule {
   id: number;
-  section_id: number;
+  period_section_id: number;
+  course_id: number;
+  teacher_user_id: number;
   day_of_week: string;
-  start_date: string;
-  end_date: string;
-  is_recurring: boolean;
-  specific_date?: string | null;
+  start_time: string;
+  end_time: string;
 }
 
 const Schedules = () => {
@@ -76,15 +76,13 @@ const Schedules = () => {
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               ID: {schedule.id}
             </strong>
-            <p>Sección ID: {schedule.section_id}</p>
+            <p>Sección del Periodo ID: {schedule.period_section_id}</p>
+            <p>Curso ID: {schedule.course_id}</p>
+            <p>Profesor ID: {schedule.teacher_user_id}</p>
             <p>Día: {schedule.day_of_week}</p>
             <p>
-              Hora: {schedule.start_date} - {schedule.end_date}
+              Hora: {schedule.start_time} - {schedule.end_time}
             </p>
-            <p>¿Recurrente?: {schedule.is_recurring ? "Sí" : "No"}</p>
-            {schedule.specific_date && (
-              <p>Fecha específica: {schedule.specific_date}</p>
-            )}
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button
                 onClick={() => handleShow(schedule.id)}

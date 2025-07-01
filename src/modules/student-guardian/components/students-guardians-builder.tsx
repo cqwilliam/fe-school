@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/api";
 
 export interface StudentGuardianData {
-  student_id: number;
-  guardian_id: number;
+  student_user_id: number;
+  guardian_user_id: number;
   relationship: string;
 }
 
@@ -18,19 +18,23 @@ export default function StudentGuardianBuilder({
   studentGuardianId,
   afterSubmit,
 }: StudentGuardianBuilderProps) {
-  const [studentGuardianData, setStudentGuardianData] = useState<StudentGuardianData>({
-    student_id: 0,
-    guardian_id: 0,
-    relationship: "",
-  });
+  const [studentGuardianData, setStudentGuardianData] =
+    useState<StudentGuardianData>({
+      student_user_id: 0,
+      guardian_user_id: 0,
+      relationship: "",
+    });
 
   const onSubmit = async (studentGuardianData: StudentGuardianData) => {
     try {
       if (studentGuardianId) {
-        await api.put(`/student-guardians/${studentGuardianId}`, studentGuardianData);
+        await api.put(
+          `/students-guardians/${studentGuardianId}`,
+          studentGuardianData
+        );
         alert("Relación actualizada exitosamente");
       } else {
-        await api.post("/student-guardians", studentGuardianData);
+        await api.post("/students-guardians", studentGuardianData);
         alert("Relación creada exitosamente");
       }
       afterSubmit?.();
@@ -43,7 +47,9 @@ export default function StudentGuardianBuilder({
   useEffect(() => {
     if (studentGuardianId) {
       const fetchStudentGuardian = async () => {
-        const response = await api.get(`/student-guardians/${studentGuardianId}`);
+        const response = await api.get(
+          `/student-guardians/${studentGuardianId}`
+        );
         setStudentGuardianData(response.data.data);
       };
       fetchStudentGuardian();
@@ -77,7 +83,7 @@ export default function StudentGuardianBuilder({
       <input
         type="number"
         name="student_id"
-        value={studentGuardianData.student_id}
+        value={studentGuardianData.student_user_id}
         onChange={handleChange}
         required
       />
@@ -86,7 +92,7 @@ export default function StudentGuardianBuilder({
       <input
         type="number"
         name="guardian_id"
-        value={studentGuardianData.guardian_id}
+        value={studentGuardianData.guardian_user_id}
         onChange={handleChange}
         required
       />

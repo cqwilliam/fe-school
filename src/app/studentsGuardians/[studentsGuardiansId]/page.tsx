@@ -6,8 +6,8 @@ import api from "../../../lib/api";
 
 interface StudentGuardian {
   id: number;
-  student_id: number;
-  guardian_id: number;
+  student_user_id: number;
+  guardian_user_id: number;
   relationship: string | null;
 }
 
@@ -23,7 +23,7 @@ const StudentGuardian = () => {
         const response = await api.get<{
           success: boolean;
           data: StudentGuardian;
-        }>(`/student-guardians/${studentsGuardiansId}`);
+        }>(`/students-guardians/${studentsGuardiansId}`);
         if (response.data.success) {
           setStudentGuardian(response.data.data);
         } else {
@@ -50,8 +50,8 @@ const StudentGuardian = () => {
     <div>
       <h1>Relación Estudiante - Apoderado</h1>
       <p>ID: {studentGuardian.id}</p>
-      <p>ID del Estudiante: {studentGuardian.student_id}</p>
-      <p>ID del Apoderado: {studentGuardian.guardian_id}</p>
+      <p>ID del Estudiante: {studentGuardian.student_user_id}</p>
+      <p>ID del Apoderado: {studentGuardian.guardian_user_id}</p>
       <p>Relación: {studentGuardian.relationship}</p>
     </div>
   );

@@ -6,13 +6,14 @@ import api from "../../lib/api";
 
 interface Evaluation {
   id: number;
-  title: string;
-  section_id: number;
+  period_section_id: number;
   evaluation_type_id: number;
-  academic_period_id: number;
-  weight: number;
-  date?: string;
+  teacher_user_id: number;
+  title: string;
+  description?: string;
   due_date?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const Evaluations = () => {
@@ -30,7 +31,9 @@ const Evaluations = () => {
           setError("No se pudo obtener la lista de evaluaciones.");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Error al cargar evaluaciones.");
+        setError(
+          err.response?.data?.message || "Error al cargar evaluaciones."
+        );
       }
     };
 
@@ -50,9 +53,7 @@ const Evaluations = () => {
         fontFamily: "'Inter', sans-serif",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
-        Evaluaciones
-      </h1>
+      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Evaluaciones</h1>
 
       {error ? (
         <p style={{ color: "red" }}>Error: {error}</p>
@@ -77,11 +78,12 @@ const Evaluations = () => {
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               {evaluation.title}
             </strong>
-            <p>Sección ID: {evaluation.section_id}</p>
+            <p>Sección del Periodo ID: {evaluation.period_section_id}</p>
             <p>Tipo de Evaluación ID: {evaluation.evaluation_type_id}</p>
-            <p>Periodo Académico ID: {evaluation.academic_period_id}</p>
-            <p>Peso: {evaluation.weight}%</p>
-            <p>Fecha: {evaluation.date || "No especificada"}</p>
+            <p>Profesor (User ID): {evaluation.teacher_user_id}</p>
+            {evaluation.description && (
+              <p>Descripción: {evaluation.description}</p>
+            )}
             <p>Fecha límite: {evaluation.due_date || "No especificada"}</p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>

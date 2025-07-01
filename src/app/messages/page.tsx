@@ -6,12 +6,12 @@ import api from "../../lib/api";
 
 interface Message {
   id: number;
-  sender_id: number;
-  recipient_id: number;
+  sender_user_id: number;
+  target_user_id: number;
   content: string;
-  sent_at: string;
   is_read: boolean;
-  read_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const Messages = () => {
@@ -74,12 +74,11 @@ const Messages = () => {
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               Mensaje ID: {msg.id}
             </strong>
-            <p>De (usuario): {msg.sender_id}</p>
-            <p>Para (usuario): {msg.recipient_id}</p>
+            <p>De (usuario): {msg.sender_user_id}</p>
+            <p>Para (usuario): {msg.target_user_id}</p>
             <p>Contenido: {msg.content}</p>
-            <p>Enviado: {new Date(msg.sent_at).toLocaleString()}</p>
+            <p>Enviado: {new Date(msg.created_at).toLocaleString()}</p>
             <p>Leído: {msg.is_read ? "Sí" : "No"}</p>
-            {msg.read_at && <p>Fecha de lectura: {new Date(msg.read_at).toLocaleString()}</p>}
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button

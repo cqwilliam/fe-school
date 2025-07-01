@@ -29,7 +29,9 @@ export default function EvaluationTypeBuilder({
     if (evaluationTypeId) {
       const fetchEvaluationType = async () => {
         try {
-          const response = await api.get(`/evaluation-types/${evaluationTypeId}`);
+          const response = await api.get(
+            `/evaluation-types/${evaluationTypeId}`
+          );
           setData(response.data.data);
         } catch (error) {
           alert("Error al cargar el tipo de evaluación");
@@ -73,7 +75,11 @@ export default function EvaluationTypeBuilder({
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1>{evaluationTypeId ? "Actualizar Tipo de Evaluación" : "Crear Tipo de Evaluación"}</h1>
+      <h1>
+        {evaluationTypeId
+          ? "Actualizar Tipo de Evaluación"
+          : "Crear Tipo de Evaluación"}
+      </h1>
 
       <label>Nombre:</label>
       <input
@@ -103,9 +109,7 @@ export default function EvaluationTypeBuilder({
         required
       />
 
-      <button type="submit">
-        {evaluationTypeId ? "Actualizar" : "Crear"}
-      </button>
+      <button type="submit">{evaluationTypeId ? "Actualizar" : "Crear"}</button>
     </form>
   );
 }

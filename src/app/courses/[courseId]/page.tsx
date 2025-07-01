@@ -9,8 +9,6 @@ interface Course {
   code: string;
   name: string;
   description?: string;
-  credits: number;
-  academic_period_id: number;
 }
 
 const Course = () => {
@@ -21,7 +19,9 @@ const Course = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await api.get<{ success: boolean; data: Course }>(`/courses/${courseId}`);
+        const response = await api.get<{ success: boolean; data: Course }>(
+          `/courses/${courseId}`
+        );
         if (response.data.success) {
           setCourse(response.data.data);
         } else {
@@ -47,13 +47,21 @@ const Course = () => {
 
   return (
     <div style={{ padding: 24, fontFamily: "'Inter', sans-serif" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Detalles del Curso</h1>
-      <p><strong>ID:</strong> {course.id}</p>
-      <p><strong>Código:</strong> {course.code}</p>
-      <p><strong>Nombre:</strong> {course.name}</p>
-      <p><strong>Descripción:</strong> {course.description || "Sin descripción"}</p>
-      <p><strong>Créditos:</strong> {course.credits}</p>
-      <p><strong>ID del Periodo Académico:</strong> {course.academic_period_id}</p>
+      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
+        Detalles del Curso
+      </h1>
+      <p>
+        <strong>ID:</strong> {course.id}
+      </p>
+      <p>
+        <strong>Código:</strong> {course.code}
+      </p>
+      <p>
+        <strong>Nombre:</strong> {course.name}
+      </p>
+      <p>
+        <strong>Descripción:</strong> {course.description || "Sin descripción"}
+      </p>
     </div>
   );
 };

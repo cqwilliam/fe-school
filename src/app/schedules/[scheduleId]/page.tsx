@@ -6,15 +6,15 @@ import api from "../../../lib/api";
 
 interface Schedule {
   id: number;
-  section_id: number;
+  period_section_id: number;
+  course_id: number;
+  teacher_user_id: number;
   day_of_week: string;
-  start_date: string;
-  end_date: string;
-  is_recurring: boolean;
-  specific_date?: string | null;
+  start_time: string;
+  end_time: string;
 }
 
-const Schedule = () => {
+const ScheduleDetail = () => {
   const { scheduleId } = useParams();
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,18 +50,32 @@ const Schedule = () => {
 
   return (
     <div style={{ padding: 24, fontFamily: "'Inter', sans-serif" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>Detalle del Horario</h1>
-      <p><strong>ID:</strong> {schedule.id}</p>
-      <p><strong>ID de Sección:</strong> {schedule.section_id}</p>
-      <p><strong>Día de la Semana:</strong> {schedule.day_of_week}</p>
-      <p><strong>Hora de Inicio:</strong> {schedule.start_date}</p>
-      <p><strong>Hora de Fin:</strong> {schedule.end_date}</p>
-      <p><strong>¿Es recurrente?:</strong> {schedule.is_recurring ? "Sí" : "No"}</p>
-      {schedule.specific_date && (
-        <p><strong>Fecha específica:</strong> {schedule.specific_date}</p>
-      )}
+      <h1 style={{ fontSize: "2rem", marginBottom: "24px" }}>
+        Detalle del Horario
+      </h1>
+      <p>
+        <strong>ID:</strong> {schedule.id}
+      </p>
+      <p>
+        <strong>Sección del Periodo ID:</strong> {schedule.period_section_id}
+      </p>
+      <p>
+        <strong>Curso ID:</strong> {schedule.course_id}
+      </p>
+      <p>
+        <strong>Profesor ID:</strong> {schedule.teacher_user_id}
+      </p>
+      <p>
+        <strong>Día de la Semana:</strong> {schedule.day_of_week}
+      </p>
+      <p>
+        <strong>Hora de Inicio:</strong> {schedule.start_time}
+      </p>
+      <p>
+        <strong>Hora de Fin:</strong> {schedule.end_time}
+      </p>
     </div>
   );
 };
 
-export default Schedule;
+export default ScheduleDetail;

@@ -5,8 +5,7 @@ export interface AnnouncementData {
   title: string;
   content: string;
   target: string;
-  section_id?: number | null;
-  published_by: number;
+  user_id: number; 
 }
 
 interface AnnouncementBuilderProps {
@@ -22,8 +21,7 @@ export default function AnnouncementBuilder({
     title: "",
     content: "",
     target: "",
-    section_id: null,
-    published_by: 0,
+    user_id: 0,
   });
 
   const onSubmit = async (data: AnnouncementData) => {
@@ -46,21 +44,25 @@ export default function AnnouncementBuilder({
     if (announcementId) {
       const fetchAnnouncement = async () => {
         const response = await api.get(`/announcements/${announcementId}`);
-        setAnnouncementData(response.data.data);
+        const data = response.data.data;
+        setAnnouncementData({
+          title: data.title,
+          content: data.content,
+          target: data.target,
+          user_id: data.user_id, 
+        });
       };
       fetchAnnouncement();
     }
   }, [announcementId]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setAnnouncementData((prev) => ({
       ...prev,
-      [name]: name === "section_id" && value === "" ? null : value,
+      [name]: name === "user_id" ? Number(value) : value,
     }));
   };
 
@@ -99,21 +101,14 @@ export default function AnnouncementBuilder({
         required
       />
 
-      <label>ID de Sección (opcional):</label>
+      <label>ID Usuario (Publicado por):</label>
       <input
         type="number"
-        name="section_id"
-        value={announcementData.section_id ?? ""}
-        onChange={handleChange}
-      />
-
-      <label>Publicado por (ID Usuario):</label>
-      <input
-        type="number"
-        name="published_by"
-        value={announcementData.published_by}
+        name="user_id"
+        value={announcementData.user_id}
         onChange={handleChange}
         required
+        min={1}
       />
 
       <button type="submit">

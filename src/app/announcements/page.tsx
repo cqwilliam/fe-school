@@ -9,9 +9,9 @@ interface Announcement {
   title: string;
   content: string;
   target: string;
-  section_id: number | null;
-  published_at: string;
-  published_by: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const Announcements = () => {
@@ -36,7 +36,8 @@ const Announcements = () => {
   }, []);
 
   const handleShow = (id: number) => router.push(`/announcements/${id}`);
-  const handleUpdate = (id: number) => router.push(`/announcements/${id}/update`);
+  const handleUpdate = (id: number) =>
+    router.push(`/announcements/${id}/update`);
   const handleCreate = () => router.push("/announcements/create");
 
   return (
@@ -74,10 +75,17 @@ const Announcements = () => {
               {announcement.title}
             </strong>
             <p>{announcement.content}</p>
-            <p><strong>Target:</strong> {announcement.target}</p>
-            <p><strong>Sección:</strong> {announcement.section_id ?? "Global"}</p>
-            <p><strong>Publicado en:</strong> {new Date(announcement.published_at).toLocaleString()}</p>
-            <p><strong>Publicado por:</strong> {announcement.published_by}</p>
+            <p>
+              <strong>Target:</strong> {announcement.target}
+            </p>
+            <p>
+              <strong>Publicado en:</strong>{" "}
+              {new Date(announcement.created_at).toLocaleString()}
+            </p>
+            <p>
+              <strong>Publicado por (ID Usuario):</strong>{" "}
+              {announcement.user_id}
+            </p>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
               <button

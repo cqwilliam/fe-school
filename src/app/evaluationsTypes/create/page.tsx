@@ -2,9 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import EvaluationTypeBuilder, {
-  EvaluationTypeData,
-} from "@/modules/evaluations-types/components/evaluations-types-builder";
+import EvaluationTypeBuilder from "@/modules/evaluations-types/components/evaluations-types-builder";
 
 const EvaluationTypeCreate = () => {
   const router = useRouter();

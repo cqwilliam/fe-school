@@ -6,8 +6,8 @@ import api from "../../lib/api";
 
 interface StudentGuardian {
   id: number;
-  student_id: number;
-  guardian_id: number;
+  student_user_id: number;
+  guardian_user_id: number;
   relationship: string | null;
 }
 
@@ -19,7 +19,7 @@ const StudentsGuardians = () => {
   useEffect(() => {
     const fetchRelations = async () => {
       try {
-        const response = await api.get("/student-guardians");
+        const response = await api.get("/students-guardians");
         if (response.data.success) {
           setRelations(response.data.data);
         } else {
@@ -34,8 +34,9 @@ const StudentsGuardians = () => {
   }, []);
 
   const handleShow = (id: number) => router.push(`/studentsGuardians/${id}`);
-  const handleUpdate = (id: number) => router.push(`/studentsGuardians/${id}/update`);
-  const handleCreate = () => router.push("/studentsGuardians/create");  
+  const handleUpdate = (id: number) =>
+    router.push(`/studentsGuardians/${id}/update`);
+  const handleCreate = () => router.push("/studentsGuardians/create");
 
   return (
     <div
@@ -73,8 +74,12 @@ const StudentsGuardians = () => {
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
               ID: {relation.id}
             </strong>
-            <p style={{ margin: "4px 0" }}>Estudiante ID: {relation.student_id}</p>
-            <p style={{ margin: "4px 0" }}>Apoderado ID: {relation.guardian_id}</p>
+            <p style={{ margin: "4px 0" }}>
+              Estudiante ID: {relation.student_user_id}
+            </p>
+            <p style={{ margin: "4px 0" }}>
+              Apoderado ID: {relation.guardian_user_id}
+            </p>
             <p style={{ margin: "4px 0" }}>
               Relación: {relation.relationship || "No especificada"}
             </p>

@@ -1,9 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import ClassSessionBuilder, {
-  ClassSessionData,
-} from "@/modules/class-sessions/components/class-sessions-builder"; // asegúrate de que esta ruta sea correcta
+import ClassSessionBuilder from "@/modules/class-sessions/components/class-sessions-builder";
 
 const ClassSessionCreate = () => {
   const router = useRouter();
@@ -11,7 +9,7 @@ const ClassSessionCreate = () => {
   const classSessionId = searchParams.get("classSessionId");
 
   const handleSubmit = () => {
-    router.push("/classSessions"); // ajusta según el flujo de tu app
+    router.push("/classSessions");
   };
 
   return (
