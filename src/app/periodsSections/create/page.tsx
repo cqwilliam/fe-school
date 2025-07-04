@@ -1,3 +1,5 @@
+'use client';
+
 import PeriodSectionBuilder from "@/modules/periods-sections/components/periods-sections-builder";
 import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";

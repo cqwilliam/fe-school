@@ -9,8 +9,59 @@ interface MenuItem {
   label: string;
   icon: string;
 }
+
 import api from "../../lib/api";
 import { logout } from "../../lib/auth";
+import CoursesDash from "../coursesDash/page";
+import AnnouncementDash from "../announcementDash/page";
+
+interface Califications {
+  user_id: number;
+  nombre: string;
+}
+
+const calificationsMock: Array<Califications> = [
+  {
+    user_id: 1,
+    nombre: "Juan",
+  },
+  {
+    user_id: 2,
+    nombre: "Pedro",
+  },
+  {
+    user_id: 3,
+    nombre: "Maria",
+  },
+  {
+    user_id: 4,
+    nombre: "Jose",
+  },
+  {
+    user_id: 5,
+    nombre: "Luis",
+  },
+  {
+    user_id: 6,
+    nombre: "Ana",
+  },
+  {
+    user_id: 7,
+    nombre: "Carlos",
+  },
+  {
+    user_id: 8,
+    nombre: "Laura",
+  },
+  {
+    user_id: 9,
+    nombre: "Sofia",
+  },
+  {
+    user_id: 10,
+    nombre: "Diego",
+  },
+];
 
 interface User {
   id: number;
@@ -25,46 +76,52 @@ interface User {
   address: string;
 }
 
-interface TeacherData {
-  specialty: string;
-  academic_degree: string;
-}
-
-interface StudentGuardianData {
-  relationship: string;
-  guardian_user: {
-    user: {
-      full_name: string;
-      first_name: string;
-      phone: string;
-    };
-  };
-}
-
-interface StudentData {
+interface Course {
   id: number;
-  grade: string;
-  section: string;
-  studentGuardian?: StudentGuardianData[];
+  name: string;
+}
+
+interface Section {
+  id: number;
+  name: string;
+}
+
+interface StudentGuardian {
+  student_user_id: number;
+  guardian_user_id: number;
+  relationship: string;
+  student?: User;
+  guardian?: User;
 }
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
-  const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [studentGuardians, setStudentGuardians] = useState<StudentGuardian[]>(
+    []
+  );
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [activeSection, setActiveSection] = useState("perfil");
-
   const [editingPassword, setEditingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
+  const formatId = (id: number) => {
+    return id.toString().padStart(8, "0");
+  };
+
+  const formatBirthDate = (age: number) => {
+    const currentYear = new Date().getFullYear();
+    const birthYear = currentYear - age;
+    return `${birthYear}/01/01`;
+  };
+
   const menuItems: MenuItem[] = [
     { id: "perfil", label: "Perfil", icon: "👤" },
     { id: "cursos", label: "Cursos", icon: "📚" },
     { id: "calificaciones", label: "Calificaciones", icon: "📊" },
-    { id: "asistencia", label: "Asistencia", icon: "✅" },
     { id: "horarios", label: "Horarios", icon: "⏰" },
     { id: "comunicados", label: "Comunicados", icon: "📢" },
   ];
@@ -123,58 +180,93 @@ export default function HomePage() {
         const response = await api.get<User>("/current-user");
         const userData = response.data;
         setUser(userData);
-
-        if (userData.role_name === "Docente") {
-          fetchTeacherData(userData.id);
-        } else if (userData.role_name === "Estudiante") {
-          fetchStudentData(userData.id);
-        }
       } catch (error) {
         logout();
         router.push("/login");
       }
     };
 
-    const fetchTeacherData = async (userId: number) => {
-      try {
-        const res = await api.get(`/users/${userId}/teachers`);
-        if (res.data.success) {
-          setTeacherData(res.data.data);
-        }
-      } catch (error) {
-        console.error("Error al obtener datos del docente", error);
-      }
-    };
-
-    const fetchStudentData = async (userId: number) => {
-      try {
-        const res = await api.get(`/users/${userId}/students`);
-        if (res.data.success) {
-          const student: StudentData = res.data.data;
-
-          try {
-            const guardianRes = await api.get(
-              `/students/${student.id}/guardians`
-            );
-            if (guardianRes.data.success) {
-              setStudentData({
-                ...student,
-                studentGuardian: guardianRes.data.data,
-              });
-            } else {
-              setStudentData(student);
-            }
-          } catch (error) {
-            setStudentData(student);
-          }
-        }
-      } catch (error) {
-        console.error("Error al obtener datos del estudiante", error);
-      }
-    };
-
     fetchUser();
   }, [router]);
+
+  useEffect(() => {
+    const fetchStudentGuardians = async () => {
+      if (!user) return;
+
+      try {
+        const response = await api.get("/students-guardians");
+        const data: StudentGuardian[] = response.data.data;
+
+        if (user.role_name === "Estudiante") {
+          const relations = data.filter(
+            (rel) => rel.student_user_id === user.id
+          );
+          const guardianPromises = relations.map((rel) =>
+            api.get(`/users/${rel.guardian_user_id}`)
+          );
+          const guardianResponses = await Promise.all(guardianPromises);
+
+          const updatedRelations = relations.map((rel, index) => ({
+            ...rel,
+            guardian:
+              guardianResponses[index].data.data ||
+              guardianResponses[index].data,
+          }));
+
+          setStudentGuardians(updatedRelations);
+        } else if (user.role_name === "Apoderado") {
+          const relations = data.filter(
+            (rel) => rel.guardian_user_id === user.id
+          );
+          const studentPromises = relations.map((rel) =>
+            api.get(`/users/${rel.student_user_id}`)
+          );
+          const studentResponses = await Promise.all(studentPromises);
+
+          const updatedRelations = relations.map((rel, index) => ({
+            ...rel,
+            student:
+              studentResponses[index].data.data || studentResponses[index].data,
+          }));
+
+          setStudentGuardians(updatedRelations);
+        }
+      } catch (error) {
+        console.error(
+          "Error al obtener relaciones estudiante-apoderado",
+          error
+        );
+      }
+    };
+
+    fetchStudentGuardians();
+  }, [user]);
+
+  // Nuevo useEffect para obtener secciones del estudiante o cursos del profesor
+  useEffect(() => {
+    const fetchUserSectionsOrCourses = async () => {
+      if (!user) return;
+
+      try {
+        if (user.role_name === "Estudiante") {
+          // Obtener secciones del estudiante
+          const response = await api.get(`/students/${user.id}/sections`);
+          setSections(response.data.data || response.data);
+        } else if (
+          user.role_name === "Docente" ||
+          user.role_name === "Profesor"
+        ) {
+          // Obtener cursos del profesor
+          const response = await api.get(`/teachers/${user.id}/courses`);
+          setCourses(response.data.data || response.data);
+        }
+      } catch (error) {
+        console.error("Error al obtener secciones/cursos del usuario", error);
+      }
+    };
+
+    fetchUserSectionsOrCourses();
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -206,16 +298,6 @@ export default function HomePage() {
     }
   };
 
-  const formatId = (id: number) => {
-    return id.toString().padStart(8, "0");
-  };
-
-  const formatBirthDate = (age: number) => {
-    const currentYear = new Date().getFullYear();
-    const birthYear = currentYear - age;
-    return `${birthYear}/01/01`;
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -232,9 +314,19 @@ export default function HomePage() {
       <div className="w-64 bg-white shadow-lg">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">🎓</span>
-            </div>
+            {user.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={user.full_name}
+                className="w-12 h-12 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">
+                  {user.full_name.charAt(0)}
+                </span>
+              </div>
+            )}
             <div>
               <h2 className="font-bold text-gray-900 text-lg">
                 {user.full_name.split(" ")[0]}{" "}
@@ -269,11 +361,19 @@ export default function HomePage() {
                 Bienvenido {user.full_name.split(" ")[0]}
               </span>
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user.full_name.charAt(0)}
-                  </span>
-                </div>
+                {user.photo_url ? (
+                  <img
+                    src={user.photo_url}
+                    alt={user.full_name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">
+                      {user.full_name.charAt(0)}
+                    </span>
+                  </div>
+                )}
                 <button
                   onClick={handleLogout}
                   className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
@@ -319,49 +419,17 @@ export default function HomePage() {
                           {formatBirthDate(user.age_name)}
                         </p>
                       </div>
-                      {user.role_name === "Docente" && teacherData && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">
-                            Especialidad
-                          </label>
-                          <p className="text-gray-900 font-medium">
-                            {teacherData.specialty}
-                          </p>
-                        </div>
-                      )}
-                      {user.role_name === "Estudiante" && studentData && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">
-                            Grado
-                          </label>
-                          <p className="text-gray-900 font-medium">
-                            {studentData.grade}
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     <div className="space-y-4">
-                      {user.role_name === "Docente" && teacherData && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">
-                            Nivel de enseñanza
-                          </label>
-                          <p className="text-gray-900 font-medium">
-                            {teacherData.academic_degree}
-                          </p>
-                        </div>
-                      )}
-                      {user.role_name === "Estudiante" && studentData && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">
-                            Sección
-                          </label>
-                          <p className="text-gray-900 font-medium">
-                            {studentData.section}
-                          </p>
-                        </div>
-                      )}
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">
+                          Usuario
+                        </label>
+                        <p className="text-gray-900 font-medium">
+                          {user.user_name}
+                        </p>
+                      </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">
                           Dirección
@@ -392,51 +460,147 @@ export default function HomePage() {
                     </div>
                   </div>
 
+                  {/* Sección para mostrar secciones del estudiante */}
+                  {user.role_name === "Estudiante" && sections.length > 0 && (
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        Mis Secciones
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {sections.map((section) => (
+                          <div
+                            key={section.id}
+                            className="bg-blue-50 rounded-lg p-4 border border-blue-200"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="text-blue-600 text-lg">🏫</span>
+                              <p className="text-blue-900 font-medium">
+                                {section.name}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección para mostrar cursos del profesor */}
+                  {(user.role_name === "Docente" ||
+                    user.role_name === "Profesor") &&
+                    courses.length > 0 && (
+                      <div className="mt-8 pt-6 border-t border-gray-200">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                          Mis Cursos
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {courses.map((course) => (
+                            <div
+                              key={course.id}
+                              className="bg-green-50 rounded-lg p-4 border border-green-200"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span className="text-green-600 text-lg">
+                                  📚
+                                </span>
+                                <p className="text-green-900 font-medium">
+                                  {course.name}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                   {user.role_name === "Estudiante" &&
-                    studentData?.studentGuardian &&
-                    studentData.studentGuardian.length > 0 && (
+                    studentGuardians.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200">
                         <h4 className="text-lg font-semibold text-gray-900 mb-4">
                           Información de Apoderados
                         </h4>
                         <div className="space-y-4">
-                          {studentData.studentGuardian.map(
-                            (guardianItem, index) => (
-                              <div
-                                key={index}
-                                className="bg-gray-50 rounded-lg p-4"
-                              >
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                      Parentesco
-                                    </label>
-                                    <p className="text-gray-900 font-medium">
-                                      {guardianItem.relationship}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                      Nombre
-                                    </label>
-                                    <p className="text-gray-900 font-medium">
-                                      {
-                                        guardianItem.guardian_user.user
-                                          .full_name
-                                      }
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                      Teléfono
-                                    </label>
-                                    <p className="text-gray-900 font-medium">
-                                      {guardianItem.guardian_user.user.phone}
-                                    </p>
+                          {studentGuardians.map(
+                            (relation, index) =>
+                              relation.guardian && (
+                                <div
+                                  key={index}
+                                  className="bg-gray-50 rounded-lg p-4"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        Parentesco
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.relationship}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        Nombre
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.guardian.full_name}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        Teléfono
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.guardian.phone}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )
+                              )
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {user.role_name === "Apoderado" &&
+                    studentGuardians.length > 0 && (
+                      <div className="mt-8 pt-6 border-t border-gray-200">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                          Estudiantes a cargo
+                        </h4>
+                        <div className="space-y-4">
+                          {studentGuardians.map(
+                            (relation, index) =>
+                              relation.student && (
+                                <div
+                                  key={index}
+                                  className="bg-gray-50 rounded-lg p-4"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        Parentesco
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.relationship}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        Nombre
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.student.full_name}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-500">
+                                        DNI
+                                      </label>
+                                      <p className="text-gray-900 font-medium">
+                                        {relation.student.dni}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
                           )}
                         </div>
                       </div>
@@ -447,19 +611,19 @@ export default function HomePage() {
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-xl shadow-sm p-6 text-center">
                   <div className="relative inline-block">
-                    <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      {user.photo_url ? (
-                        <img
-                          src={user.photo_url}
-                          alt={user.full_name}
-                          className="w-32 h-32 rounded-full object-cover"
-                        />
-                      ) : (
+                    {user.photo_url ? (
+                      <img
+                        src={user.photo_url}
+                        alt={user.full_name}
+                        className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-white text-4xl font-bold">
                           {user.full_name.charAt(0)}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   <h2 className="text-xl font-bold text-gray-900 mb-1">
@@ -477,13 +641,13 @@ export default function HomePage() {
                       Panel de Administración
                     </h3>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {adminLinks.map((link) => (
+                      {adminLinks.map((link, index) => (
                         <a
-                          key={link.href}
+                          key={index}
                           href={link.href}
                           className="flex items-center space-x-3 p-2 rounded-lg hover:bg-blue-50 transition-colors text-sm"
                         >
-                          <span>{link.icon}</span>
+                          <span className="text-gray-600">➤</span>
                           <span className="text-gray-700 hover:text-blue-600">
                             {link.label}
                           </span>
@@ -559,7 +723,13 @@ export default function HomePage() {
               </div>
             </div>
           )}
-
+    
+          {activeSection === "cursos" && <CoursesDash />}
+          {activeSection === "calificaciones" &&
+            calificationsMock.map((calification, index) => (
+              <div key={index}>{calification.nombre}</div>
+            ))}
+              {activeSection === "comunicados" && <AnnouncementDash />}
           {activeSection !== "perfil" && (
             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
               <div className="text-6xl mb-4">🚧</div>

@@ -13,7 +13,7 @@ const studentGuardianUpdate = () => {
 
   return (
     <StudentBuilder
-      studentGuardianId={studentsGuardiansId as string}
+      studentsGuardiansId={studentsGuardiansId as string}
       afterSubmit={handleSubmit}
     />
   );

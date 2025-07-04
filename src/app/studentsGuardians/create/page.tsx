@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const StudentGuardiansCreate = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const relationId = searchParams.get("relationId");
+  const studentsGuardiansId = searchParams.get("studentsGuardiansId");
 
   const handleSubmit = () => {
     router.push("/studentsGuardians");
@@ -15,7 +15,7 @@ const StudentGuardiansCreate = () => {
   return (
     <div>
       <StudentGuardianBuilder
-        studentGuardianId={relationId ?? undefined}
+        studentsGuardiansId={studentsGuardiansId ?? undefined}
         afterSubmit={handleSubmit}
       />
     </div>
