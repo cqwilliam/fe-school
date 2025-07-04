@@ -44,7 +44,7 @@ interface CourseWithMaterials extends Course {
 }
 
 const CoursesDash = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser ] = useState<User | null>(null);
   const [coursesWithMaterials, setCoursesWithMaterials] = useState<
     CourseWithMaterials[]
   >([]);
@@ -53,7 +53,6 @@ const CoursesDash = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
 
   const courseColors = [
     { bg: "bg-red-50", border: "border-red-200", accent: "bg-red-500" },
@@ -79,31 +78,30 @@ const CoursesDash = () => {
   ];
 
   useEffect(() => {
-  const fetchUser  = async () => {
-    const token = localStorage.getItem("token");
-    console.log("Token:", token); // Verifica el token
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    const fetchUser  = async () => {
+      const token = localStorage.getItem("token");
+      console.log("Token:", token); // Verifica el token
+      if (!token) {
+        router.push("/login");
+        return;
+      }
 
-    try {
-      const userRes = await api.get("/current-user");
-      console.log("User  Response:", userRes.data); // Verifica la respuesta del usuario
-      setUser (userRes.data);
-    } catch (error) {
-      console.error("Error al obtener el usuario:", error);
-      setError("Error al cargar la información del usuario.");
-      logout();
-      router.push("/login");
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const userRes = await api.get("/current-user");
+        console.log("User  Response:", userRes.data); // Verifica la respuesta del usuario
+        setUser (userRes.data);
+      } catch (error) {
+        console.error("Error al obtener el usuario:", error);
+        setError("Error al cargar la información del usuario.");
+        logout();
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchUser ();
-}, [router]);
-
+    fetchUser ();
+  }, [router]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,9 +151,21 @@ const CoursesDash = () => {
             teacher: courseTeachers.find((t) => t.course_id === course.id),
           }));
         } else {
+          // Para docentes, obtener los materiales de los cursos
+          const materialsRes = await api.get(
+            `/teachers/${user.id}/course-materials`
+          );
+          if (
+            !materialsRes.data?.data ||
+            !Array.isArray(materialsRes.data.data)
+          ) {
+            throw new Error("Formato de datos de materiales incorrecto");
+          }
+          const courseMaterials: CourseMaterial[] = materialsRes.data.data;
+
           combinedCourses = userCourses.map((course) => ({
             ...course,
-            materials: [],
+            materials: courseMaterials.filter((m) => m.course_id === course.id),
           }));
         }
 
@@ -288,9 +298,9 @@ const CoursesDash = () => {
 
                 {selectedCourse.materials.length > 0 ? (
                   <div className="space-y-4">
-                    {selectedCourse.materials.map((material) => (
+                  {selectedCourse.materials.map((material, index) => (
                       <div
-                        key={material.id}
+                        key={`material-${material.id || index}`}
                         className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-start justify-between">
@@ -380,7 +390,7 @@ const CoursesDash = () => {
               const colorScheme = courseColors[index % courseColors.length];
               return (
                 <div
-                  key={course.id}
+                  key={`course-${course.id || index}`}
                   onClick={() => handleCourseClick(course)}
                   className={`${colorScheme.bg} ${colorScheme.border} border-l-4 rounded-lg p-6 cursor-pointer hover:shadow-sm transition-all duration-200 group`}
                 >

@@ -69,6 +69,7 @@ const Messages = () => {
               marginBottom: "16px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.05)",
               backgroundColor: "#fdfdfd",
+              color: "#000000",
             }}
           >
             <strong style={{ fontSize: "18px", marginBottom: "8px" }}>
@@ -88,7 +89,7 @@ const Messages = () => {
                   borderRadius: "8px",
                   cursor: "pointer",
                   backgroundColor: "#3b82f6",
-                  color: "#fff",
+                  color: "#000000",
                   fontWeight: 500,
                 }}
                 onClick={() => handleShow(msg.id)}

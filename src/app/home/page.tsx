@@ -3,65 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import MenuItems from "../../components/MenuItems";
+import { Profile } from "../profile/page";
+import CoursesDash from "../coursesDash/page";
+import AnnouncementDash from "../announcementDash/page";
+import MessageDash from "../cardInfo/page";
+import api from "../../lib/api";
+import { logout } from "../../lib/auth";
 
 interface MenuItem {
   id: string;
   label: string;
   icon: string;
 }
-
-import api from "../../lib/api";
-import { logout } from "../../lib/auth";
-import CoursesDash from "../coursesDash/page";
-import AnnouncementDash from "../announcementDash/page";
-
-interface Califications {
-  user_id: number;
-  nombre: string;
-}
-
-const calificationsMock: Array<Califications> = [
-  {
-    user_id: 1,
-    nombre: "Juan",
-  },
-  {
-    user_id: 2,
-    nombre: "Pedro",
-  },
-  {
-    user_id: 3,
-    nombre: "Maria",
-  },
-  {
-    user_id: 4,
-    nombre: "Jose",
-  },
-  {
-    user_id: 5,
-    nombre: "Luis",
-  },
-  {
-    user_id: 6,
-    nombre: "Ana",
-  },
-  {
-    user_id: 7,
-    nombre: "Carlos",
-  },
-  {
-    user_id: 8,
-    nombre: "Laura",
-  },
-  {
-    user_id: 9,
-    nombre: "Sofia",
-  },
-  {
-    user_id: 10,
-    nombre: "Diego",
-  },
-];
 
 interface User {
   id: number;
@@ -94,29 +47,34 @@ interface StudentGuardian {
   guardian?: User;
 }
 
+interface Califications {
+  user_id: number;
+  nombre: string;
+}
+
+const calificationsMock: Array<Califications> = [
+  { user_id: 1, nombre: "Juan" },
+  { user_id: 2, nombre: "Pedro" },
+  { user_id: 3, nombre: "Maria" },
+  { user_id: 4, nombre: "Jose" },
+  { user_id: 5, nombre: "Luis" },
+  { user_id: 6, nombre: "Ana" },
+  { user_id: 7, nombre: "Carlos" },
+  { user_id: 8, nombre: "Laura" },
+  { user_id: 9, nombre: "Sofia" },
+  { user_id: 10, nombre: "Diego" },
+];
+
 export default function HomePage() {
+  // Estados principales
   const [user, setUser] = useState<User | null>(null);
-  const [studentGuardians, setStudentGuardians] = useState<StudentGuardian[]>(
-    []
-  );
+  const [studentGuardians, setStudentGuardians] = useState<StudentGuardian[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeSection, setActiveSection] = useState("perfil");
-  const [editingPassword, setEditingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
   const router = useRouter();
-
-  const formatId = (id: number) => {
-    return id.toString().padStart(8, "0");
-  };
-
-  const formatBirthDate = (age: number) => {
-    const currentYear = new Date().getFullYear();
-    const birthYear = currentYear - age;
-    return `${birthYear}/01/01`;
-  };
 
   const menuItems: MenuItem[] = [
     { id: "perfil", label: "Perfil", icon: "👤" },
@@ -124,50 +82,10 @@ export default function HomePage() {
     { id: "calificaciones", label: "Calificaciones", icon: "📊" },
     { id: "horarios", label: "Horarios", icon: "⏰" },
     { id: "comunicados", label: "Comunicados", icon: "📢" },
+    { id: "mensajes", label: "Mensajes", icon: "✉️" }, // ¡Agregado!
   ];
 
-  const adminLinks = [
-    { href: "/users", label: "Ver usuarios", icon: "👥" },
-    {
-      href: "/studentsGuardians",
-      label: "Ver Apoderados estudiante",
-      icon: "👨‍👩‍👧‍👦",
-    },
-    { href: "/periods", label: "Ver periodos academicos", icon: "📅" },
-    { href: "/courses", label: "Ver cursos", icon: "📚" },
-    { href: "/sections", label: "Ver secciones", icon: "🏫" },
-    { href: "/sectionsCourses", label: "Ver secciones de curso", icon: "🏫" },
-    {
-      href: "/periodsSections",
-      label: "Ver secciones por periodo",
-      icon: "🎯",
-    },
-    {
-      href: "/periodsSectionsUsers",
-      label: "ver seccion por periodo y usuario",
-      icon: "🎯",
-    },
-    { href: "/schedules", label: "Ver Horario", icon: "⏰" },
-    { href: "/evaluationsTypes", label: "Ver tipos de Evaluacion", icon: "📊" },
-    { href: "/evaluations", label: "Ver Evaluaciones", icon: "📋" },
-    {
-      href: "/evaluationGrades",
-      label: "Ver Calificaciones de Evaluacion",
-      icon: "📋",
-    },
-    { href: "/classSessions", label: "Ver Sesiones de Clase", icon: "🎪" },
-    { href: "/attendances", label: "Ver Asistencia", icon: "✅" },
-    { href: "/assignments", label: "Ver Tareas", icon: "📄" },
-    {
-      href: "/assignmentSubmissions",
-      label: "Ver Tareas enviadas",
-      icon: "📤",
-    },
-    { href: "/courseMaterials", label: "Ver Materiales de Clase", icon: "📚" },
-    { href: "/announcements", label: "Ver Anuncios", icon: "📢" },
-    { href: "/messages", label: "Ver Mensajes", icon: "💬" },
-  ];
-
+  // Cargar información del usuario
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -178,17 +96,20 @@ export default function HomePage() {
 
       try {
         const response = await api.get<User>("/current-user");
-        const userData = response.data;
-        setUser(userData);
+        setUser(response.data);
       } catch (error) {
+        console.error("Error al cargar usuario:", error);
         logout();
         router.push("/login");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUser();
   }, [router]);
 
+  // Cargar relaciones estudiante-apoderado
   useEffect(() => {
     const fetchStudentGuardians = async () => {
       if (!user) return;
@@ -198,70 +119,55 @@ export default function HomePage() {
         const data: StudentGuardian[] = response.data.data;
 
         if (user.role_name === "Estudiante") {
-          const relations = data.filter(
-            (rel) => rel.student_user_id === user.id
-          );
-          const guardianPromises = relations.map((rel) =>
+          const relations = data.filter(rel => rel.student_user_id === user.id);
+          const guardianPromises = relations.map(rel =>
             api.get(`/users/${rel.guardian_user_id}`)
           );
           const guardianResponses = await Promise.all(guardianPromises);
 
           const updatedRelations = relations.map((rel, index) => ({
             ...rel,
-            guardian:
-              guardianResponses[index].data.data ||
-              guardianResponses[index].data,
+            guardian: guardianResponses[index].data.data || guardianResponses[index].data,
           }));
 
           setStudentGuardians(updatedRelations);
         } else if (user.role_name === "Apoderado") {
-          const relations = data.filter(
-            (rel) => rel.guardian_user_id === user.id
-          );
-          const studentPromises = relations.map((rel) =>
+          const relations = data.filter(rel => rel.guardian_user_id === user.id);
+          const studentPromises = relations.map(rel =>
             api.get(`/users/${rel.student_user_id}`)
           );
           const studentResponses = await Promise.all(studentPromises);
 
           const updatedRelations = relations.map((rel, index) => ({
             ...rel,
-            student:
-              studentResponses[index].data.data || studentResponses[index].data,
+            student: studentResponses[index].data.data || studentResponses[index].data,
           }));
 
           setStudentGuardians(updatedRelations);
         }
       } catch (error) {
-        console.error(
-          "Error al obtener relaciones estudiante-apoderado",
-          error
-        );
+        console.error("Error al obtener relaciones estudiante-apoderado:", error);
       }
     };
 
     fetchStudentGuardians();
   }, [user]);
 
-  // Nuevo useEffect para obtener secciones del estudiante o cursos del profesor
+  // Cargar cursos o secciones según el rol
   useEffect(() => {
     const fetchUserSectionsOrCourses = async () => {
       if (!user) return;
 
       try {
         if (user.role_name === "Estudiante") {
-          // Obtener secciones del estudiante
           const response = await api.get(`/students/${user.id}/sections`);
           setSections(response.data.data || response.data);
-        } else if (
-          user.role_name === "Docente" ||
-          user.role_name === "Profesor"
-        ) {
-          // Obtener cursos del profesor
+        } else if (user.role_name === "Docente" || user.role_name === "Profesor") {
           const response = await api.get(`/teachers/${user.id}/courses`);
           setCourses(response.data.data || response.data);
         }
       } catch (error) {
-        console.error("Error al obtener secciones/cursos del usuario", error);
+        console.error("Error al obtener secciones/cursos del usuario:", error);
       }
     };
 
@@ -273,37 +179,73 @@ export default function HomePage() {
     router.push("/login");
   };
 
-  const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
-      alert("Las contraseñas nuevas no coinciden.");
-      return;
-    }
+  const handlePasswordChange = () => {
+    // Refrescar datos del usuario si es necesario
+    console.log("Contraseña cambiada exitosamente");
+  };
 
-    try {
-      await api.put(`/users/${user?.id}`, {
-        current_password: currentPassword,
-        password: newPassword,
-        password_confirmation: confirmPassword,
-      });
-
-      alert("Contraseña actualizada correctamente.");
-      setEditingPassword(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error: any) {
-      alert(
-        error.response?.data?.message || "Error al actualizar la contraseña."
-      );
+  const renderContent = () => {
+    switch (activeSection) {
+      case "perfil":
+        return (
+          <Profile
+            user={user!}
+            studentGuardians={studentGuardians}
+            courses={courses}
+            sections={sections}
+            onPasswordChange={handlePasswordChange}
+          />
+        );
+      case "cursos":
+        return <CoursesDash />;
+      case "calificaciones":
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Calificaciones</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {calificationsMock.map((calification, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+                  <p className="text-gray-900 font-medium">{calification.nombre}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case "comunicados":
+        return <AnnouncementDash />;
+      case "mensajes": // ¡Nuevo case para Mensajes!
+        return <MessageDash />;
+      default:
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div className="text-6xl mb-4">🚧</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Sección en desarrollo
+            </h3>
+            <p className="text-gray-600">
+              La sección "{activeSection}" estará disponible próximamente.
+            </p>
+          </div>
+        );
     }
   };
 
-  if (!user) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando usuario...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Usuario no encontrado</p>
         </div>
       </div>
     );
@@ -329,8 +271,7 @@ export default function HomePage() {
             )}
             <div>
               <h2 className="font-bold text-gray-900 text-lg">
-                {user.full_name.split(" ")[0]}{" "}
-                {user.full_name.split(" ")[1] || ""}
+                {user.full_name.split(" ")[0]} {user.full_name.split(" ")[1] || ""}
               </h2>
               <p className="text-sm text-gray-500">{user.role_name}</p>
             </div>
@@ -387,360 +328,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex-1 p-8">
-          {activeSection === "perfil" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                    INFORMACIÓN ADICIONAL
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          ID
-                        </label>
-                        <p className="text-gray-900 font-medium">
-                          {formatId(user.id)}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          DNI
-                        </label>
-                        <p className="text-gray-900 font-medium">{user.dni}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          Fecha de Nacimiento
-                        </label>
-                        <p className="text-gray-900 font-medium">
-                          {formatBirthDate(user.age_name)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          Usuario
-                        </label>
-                        <p className="text-gray-900 font-medium">
-                          {user.user_name}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          Dirección
-                        </label>
-                        <p className="text-gray-900 font-medium">
-                          {user.address}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          Número celular
-                        </label>
-                        <p className="text-gray-900 font-medium">
-                          {user.phone}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">
-                          Contraseña
-                        </label>
-                        <button
-                          onClick={() => setEditingPassword(true)}
-                          className="text-blue-500 hover:text-blue-600 font-medium underline"
-                        >
-                          Cambiar contraseña
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sección para mostrar secciones del estudiante */}
-                  {user.role_name === "Estudiante" && sections.length > 0 && (
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                        Mis Secciones
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {sections.map((section) => (
-                          <div
-                            key={section.id}
-                            className="bg-blue-50 rounded-lg p-4 border border-blue-200"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span className="text-blue-600 text-lg">🏫</span>
-                              <p className="text-blue-900 font-medium">
-                                {section.name}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Sección para mostrar cursos del profesor */}
-                  {(user.role_name === "Docente" ||
-                    user.role_name === "Profesor") &&
-                    courses.length > 0 && (
-                      <div className="mt-8 pt-6 border-t border-gray-200">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                          Mis Cursos
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {courses.map((course) => (
-                            <div
-                              key={course.id}
-                              className="bg-green-50 rounded-lg p-4 border border-green-200"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <span className="text-green-600 text-lg">
-                                  📚
-                                </span>
-                                <p className="text-green-900 font-medium">
-                                  {course.name}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {user.role_name === "Estudiante" &&
-                    studentGuardians.length > 0 && (
-                      <div className="mt-8 pt-6 border-t border-gray-200">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                          Información de Apoderados
-                        </h4>
-                        <div className="space-y-4">
-                          {studentGuardians.map(
-                            (relation, index) =>
-                              relation.guardian && (
-                                <div
-                                  key={index}
-                                  className="bg-gray-50 rounded-lg p-4"
-                                >
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        Parentesco
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.relationship}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        Nombre
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.guardian.full_name}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        Teléfono
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.guardian.phone}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  {user.role_name === "Apoderado" &&
-                    studentGuardians.length > 0 && (
-                      <div className="mt-8 pt-6 border-t border-gray-200">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                          Estudiantes a cargo
-                        </h4>
-                        <div className="space-y-4">
-                          {studentGuardians.map(
-                            (relation, index) =>
-                              relation.student && (
-                                <div
-                                  key={index}
-                                  className="bg-gray-50 rounded-lg p-4"
-                                >
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        Parentesco
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.relationship}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        Nombre
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.student.full_name}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">
-                                        DNI
-                                      </label>
-                                      <p className="text-gray-900 font-medium">
-                                        {relation.student.dni}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
-
-              <div className="lg:col-span-1">
-                <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-                  <div className="relative inline-block">
-                    {user.photo_url ? (
-                      <img
-                        src={user.photo_url}
-                        alt={user.full_name}
-                        className="w-32 h-32 rounded-full object-cover mx-auto mb-4"
-                      />
-                    ) : (
-                      <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white text-4xl font-bold">
-                          {user.full_name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">
-                    {user.full_name.toUpperCase()}
-                  </h2>
-                  <p className="text-gray-600 font-medium mb-4">
-                    {user.role_name}
-                  </p>
-                  <p className="text-gray-500 text-sm">{user.email}</p>
-                </div>
-
-                {user.role_name === "Administrador" && (
-                  <div className="mt-6 bg-white rounded-xl shadow-sm p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Panel de Administración
-                    </h3>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {adminLinks.map((link, index) => (
-                        <a
-                          key={index}
-                          href={link.href}
-                          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-blue-50 transition-colors text-sm"
-                        >
-                          <span className="text-gray-600">➤</span>
-                          <span className="text-gray-700 hover:text-blue-600">
-                            {link.label}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {editingPassword && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Cambiar Contraseña
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contraseña actual
-                    </label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nueva contraseña
-                    </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Confirmar nueva contraseña
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    onClick={() => {
-                      setEditingPassword(false);
-                      setCurrentPassword("");
-                      setNewPassword("");
-                      setConfirmPassword("");
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handlePasswordChange}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    Guardar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-    
-          {activeSection === "cursos" && <CoursesDash />}
-          {activeSection === "calificaciones" &&
-            calificationsMock.map((calification, index) => (
-              <div key={index}>{calification.nombre}</div>
-            ))}
-              {activeSection === "comunicados" && <AnnouncementDash />}
-          {activeSection !== "perfil" && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="text-6xl mb-4">🚧</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Sección en desarrollo
-              </h3>
-              <p className="text-gray-600">
-                La sección "{activeSection}" estará disponible próximamente.
-              </p>
-            </div>
-          )}
+          {renderContent()}
         </div>
       </div>
     </div>

@@ -71,7 +71,7 @@ export default function MessageBuilder({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="text-black">
       <h1>{messageId ? "Actualizar Mensaje" : "Enviar Mensaje"}</h1>
 
       <label>Remitente (ID):</label>
