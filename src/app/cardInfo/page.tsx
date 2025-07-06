@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../lib/api";
 import { useRouter } from "next/navigation";
-import MessageCreate from "../messages/create/page";
+import MessageCreate from "../messages/create/page"; 
 
 interface Message {
   sender_user_id: number;
@@ -29,14 +29,19 @@ const MessageDash: React.FC = () => {
   const [user, setUser] = useState<{ id: number; full_name: string } | null>(
     null
   );
+  const [showCreateMessage, setShowCreateMessage] = useState(false);
   const router = useRouter();
 
-  // Cargar información del usuario
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/login");
+        logout();
         return;
       }
 
@@ -49,7 +54,6 @@ const MessageDash: React.FC = () => {
       } catch (error) {
         console.error("Error al cargar usuario:", error);
         logout();
-        router.push("/login");
       }
     };
 
@@ -63,9 +67,16 @@ const MessageDash: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get(`/users/${user.id}/messages`);
+        const fetchedMessages = response.data.data || response.data;
 
-        // Solo obtenemos los datos básicos sin información adicional de usuarios
-        setMessages(response.data.data || response.data);
+        const updatedMessages = fetchedMessages.map((msg: Message) => {
+          if (msg.target_user_id === user.id && !msg.is_read) {
+            return { ...msg, is_read: true };
+          }
+          return msg;
+        });
+
+        setMessages(updatedMessages);
       } catch (err: any) {
         let errorMessage = "Error al cargar los mensajes.";
         if (err.response) {
@@ -91,7 +102,11 @@ const MessageDash: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString("es-ES", {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Fecha desconocida";
+      }
+      return date.toLocaleDateString("es-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -103,16 +118,23 @@ const MessageDash: React.FC = () => {
     }
   };
 
-  // Función para obtener el nombre seguro
-  const getSafeName = (name?: string) => {
-    if (!name) return "Desconocido";
-    const parts = name.split(" ");
-    return `${parts[0]}${parts[1] ? " " + parts[1].charAt(0) + "." : ""}`;
-  };
-
-  // Función para obtener la inicial segura
   const getSafeInitial = (name?: string) => {
     return name ? name.charAt(0).toUpperCase() : "?";
+  };
+
+  const handleMarkAsRead = async (messageId: number) => {
+    console.log(`Marcando mensaje ${messageId} como leído...`);
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg.created_at === messages[messageId].created_at 
+          ? { ...msg, is_read: true }
+          : msg
+      )
+    );
+  };
+
+  const toggleCreateMessage = () => {
+    setShowCreateMessage(!showCreateMessage);
   };
 
   if (!user) {
@@ -125,7 +147,7 @@ const MessageDash: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 ">
         <div className="animate-pulse space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="border border-gray-100 rounded p-4">
@@ -164,9 +186,31 @@ const MessageDash: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mensajes</h1>
-        <MessageCreate/>
-        <p className="text-gray-600 mt-1">Todos tus mensajes aparecerán aquí</p>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Mis Mensajes</h1>
+          <button
+            onClick={toggleCreateMessage}
+            className="inline-flex items-center px-4 py-2 border-green-800 hover:border-green-200 hover:bg-green-200 border-1 text-sm font-medium rounded-md text-green-800   transition-colors"
+          >
+            <svg 
+              className={`w-4 h-4 mr-2 transition-transform ${showCreateMessage ? 'rotate-45' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {showCreateMessage ? 'Cancelar' : 'Nuevo Mensaje'}
+          </button>
+        </div>
+        
+        {showCreateMessage && (
+          <div className="mt-4 p-4 bg-white rounded-4xl ">
+            <MessageCreate />
+          </div>
+        )}
+        
+        <p className="text-gray-600 mt-3">Todos tus mensajes aparecerán aquí</p>
       </div>
 
       {messages.length === 0 ? (
@@ -180,60 +224,78 @@ const MessageDash: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`bg-white rounded-lg shadow-sm border ${
-                message.is_read ? "border-gray-200" : "border-blue-200"
-              } p-6 hover:shadow-md transition-shadow`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                    {getSafeInitial("Remitente")}
-                  </div>
-                  <div>
-                    <h2 className="font-medium text-gray-900">
-                      {message.sender?.full_name ||
-                        getSafeName(`Usuario ${message.sender_user_id}`)}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Para:{" "}
-                      {user.id === message.target_user_id
-                        ? "Ti"
-                        : message.target?.full_name ||
-                          `Usuario ${message.target_user_id}`}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-sm text-gray-500">
-                  {formatDate(message.created_at || "")}
-                </span>
-              </div>
+          {messages.map((message, index) => {
+            const isSentByUser = message.sender_user_id === user.id;
+            const displayRecipientName = message.target?.full_name || `Usuario ${message.target_user_id}`;
+            const displaySenderName = message.sender?.full_name || `Usuario ${message.sender_user_id}`;
+            const recipientText = isSentByUser ? `Para: ${displayRecipientName}` : '';
+            const senderInitial = isSentByUser
+              ? getSafeInitial(user.full_name)
+              : getSafeInitial(message.sender?.full_name);
 
-              <div className="text-gray-700 mb-4">{message.content}</div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="text-sm text-gray-500">
-                  <span className="font-medium">Estado:</span>{" "}
-                  {message.is_read ? "Leído" : "No leído"}
-                </div>
+            return (
+              <div
+                key={index}
+                className={`bg-white rounded-3xl shadow-sm border ${
+                  message.is_read ? "border-gray-200" : "border-blue-300"
+                } p-6 hover:shadow-md transition-shadow relative`} 
+              >
                 {!message.is_read && (
-                  <button className="text-sm font-medium text-blue-600 hover:text-blue-800">
-                    Marcar como leído
-                  </button>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                 )}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
+                        isSentByUser ? "bg-purple-500" : "bg-blue-500"
+                      }`}
+                    >
+                      {senderInitial}
+                    </div>
+                    <div>
+                      <h2 className="font-medium text-gray-900">
+                        {isSentByUser ? "Tú" : displaySenderName}
+                      </h2>
+                      {recipientText && (
+                        <p className="text-sm text-gray-500">
+                          {recipientText}
+                        </p>
+                      )}
+                      {!isSentByUser && (
+                        <p className="text-sm text-gray-500">
+                          De: {displaySenderName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {formatDate(message.created_at || "")}
+                  </span>
+                </div>
+
+                <div className="text-gray-700 mb-4">{message.content}</div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="text-sm text-gray-500">
+                    <span className="font-medium">Estado:</span>{" "}
+                    {message.is_read ? "Leído" : "No leído"}
+                  </div>
+                  {!message.is_read && (
+                    <button
+                      onClick={() => handleMarkAsRead(index)} 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                    >
+                      Marcar como leído
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 };
-
-function logout() {
-  localStorage.removeItem("token");
-}
 
 export default MessageDash;

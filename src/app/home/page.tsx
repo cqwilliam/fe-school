@@ -9,6 +9,8 @@ import AnnouncementDash from "../announcementDash/page";
 import MessageDash from "../cardInfo/page";
 import api from "../../lib/api";
 import { logout } from "../../lib/auth";
+import ScheduleDash from "../schedulesDash/page";
+import AttendancesDash from "../attendancesDash/page";
 
 interface MenuItem {
   id: string;
@@ -66,9 +68,10 @@ const calificationsMock: Array<Califications> = [
 ];
 
 export default function HomePage() {
-  // Estados principales
   const [user, setUser] = useState<User | null>(null);
-  const [studentGuardians, setStudentGuardians] = useState<StudentGuardian[]>([]);
+  const [studentGuardians, setStudentGuardians] = useState<StudentGuardian[]>(
+    []
+  );
   const [courses, setCourses] = useState<Course[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeSection, setActiveSection] = useState("perfil");
@@ -77,15 +80,14 @@ export default function HomePage() {
   const router = useRouter();
 
   const menuItems: MenuItem[] = [
-    { id: "perfil", label: "Perfil", icon: "👤" },
-    { id: "cursos", label: "Cursos", icon: "📚" },
-    { id: "calificaciones", label: "Calificaciones", icon: "📊" },
-    { id: "horarios", label: "Horarios", icon: "⏰" },
-    { id: "comunicados", label: "Comunicados", icon: "📢" },
-    { id: "mensajes", label: "Mensajes", icon: "✉️" }, // ¡Agregado!
+    { id: "perfil", label: "Perfil", icon: "/Home.png" },
+    { id: "cursos", label: "Cursos", icon: "/Graduation.png" },
+    { id: "asistencias", label: "Asistencia", icon: "/Calendar.png" },
+    { id: "horarios", label: "Horarios", icon: "/Horario.png" },
+    { id: "comunicados", label: "Comunicados", icon: "/Form.png" },
+    { id: "mensajes", label: "Mensajes", icon: "/Message.png" },
   ];
 
-  // Cargar información del usuario
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -109,7 +111,6 @@ export default function HomePage() {
     fetchUser();
   }, [router]);
 
-  // Cargar relaciones estudiante-apoderado
   useEffect(() => {
     const fetchStudentGuardians = async () => {
       if (!user) return;
@@ -119,41 +120,50 @@ export default function HomePage() {
         const data: StudentGuardian[] = response.data.data;
 
         if (user.role_name === "Estudiante") {
-          const relations = data.filter(rel => rel.student_user_id === user.id);
-          const guardianPromises = relations.map(rel =>
+          const relations = data.filter(
+            (rel) => rel.student_user_id === user.id
+          );
+          const guardianPromises = relations.map((rel) =>
             api.get(`/users/${rel.guardian_user_id}`)
           );
           const guardianResponses = await Promise.all(guardianPromises);
 
           const updatedRelations = relations.map((rel, index) => ({
             ...rel,
-            guardian: guardianResponses[index].data.data || guardianResponses[index].data,
+            guardian:
+              guardianResponses[index].data.data ||
+              guardianResponses[index].data,
           }));
 
           setStudentGuardians(updatedRelations);
         } else if (user.role_name === "Apoderado") {
-          const relations = data.filter(rel => rel.guardian_user_id === user.id);
-          const studentPromises = relations.map(rel =>
+          const relations = data.filter(
+            (rel) => rel.guardian_user_id === user.id
+          );
+          const studentPromises = relations.map((rel) =>
             api.get(`/users/${rel.student_user_id}`)
           );
           const studentResponses = await Promise.all(studentPromises);
 
           const updatedRelations = relations.map((rel, index) => ({
             ...rel,
-            student: studentResponses[index].data.data || studentResponses[index].data,
+            student:
+              studentResponses[index].data.data || studentResponses[index].data,
           }));
 
           setStudentGuardians(updatedRelations);
         }
       } catch (error) {
-        console.error("Error al obtener relaciones estudiante-apoderado:", error);
+        console.error(
+          "Error al obtener relaciones estudiante-apoderado:",
+          error
+        );
       }
     };
 
     fetchStudentGuardians();
   }, [user]);
 
-  // Cargar cursos o secciones según el rol
   useEffect(() => {
     const fetchUserSectionsOrCourses = async () => {
       if (!user) return;
@@ -162,7 +172,10 @@ export default function HomePage() {
         if (user.role_name === "Estudiante") {
           const response = await api.get(`/students/${user.id}/sections`);
           setSections(response.data.data || response.data);
-        } else if (user.role_name === "Docente" || user.role_name === "Profesor") {
+        } else if (
+          user.role_name === "Docente" ||
+          user.role_name === "Profesor"
+        ) {
           const response = await api.get(`/teachers/${user.id}/courses`);
           setCourses(response.data.data || response.data);
         }
@@ -180,7 +193,6 @@ export default function HomePage() {
   };
 
   const handlePasswordChange = () => {
-    // Refrescar datos del usuario si es necesario
     console.log("Contraseña cambiada exitosamente");
   };
 
@@ -201,11 +213,15 @@ export default function HomePage() {
       case "calificaciones":
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Calificaciones</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Calificaciones
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {calificationsMock.map((calification, index) => (
                 <div key={index} className="bg-white rounded-lg shadow-sm p-4">
-                  <p className="text-gray-900 font-medium">{calification.nombre}</p>
+                  <p className="text-gray-900 font-medium">
+                    {calification.nombre}
+                  </p>
                 </div>
               ))}
             </div>
@@ -213,8 +229,12 @@ export default function HomePage() {
         );
       case "comunicados":
         return <AnnouncementDash />;
-      case "mensajes": // ¡Nuevo case para Mensajes!
+      case "mensajes":
         return <MessageDash />;
+      case "horarios":
+        return <ScheduleDash />;
+      case "asistencias":
+        return <AttendancesDash />;
       default:
         return (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center">
@@ -253,28 +273,20 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            {user.photo_url ? (
+      <div className="w-64 bg-white shadow-lg fixed top-0 left-0 h-full ">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
               <img
-                src={user.photo_url}
-                alt={user.full_name}
-                className="w-12 h-12 rounded-lg object-cover"
+                src='/Logo.png'
+                className="h-auto w-16 object-contain"
+                alt="Logo Pedro Paulet"
               />
-            ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
-                  {user.full_name.charAt(0)}
-                </span>
-              </div>
-            )}
-            <div>
-              <h2 className="font-bold text-gray-900 text-lg">
-                {user.full_name.split(" ")[0]} {user.full_name.split(" ")[1] || ""}
-              </h2>
-              <p className="text-sm text-gray-500">{user.role_name}</p>
             </div>
+            <h2 className="font-extrabold text-gray-900 text-3xl font-mono  text-center">
+              PEDRO PAULET
+              <br />
+            </h2>
           </div>
         </div>
 
@@ -284,15 +296,38 @@ export default function HomePage() {
           onSectionChange={setActiveSection}
         />
 
+        {/* Botón de Logout ahora en lugar de Upgrade */}
         <div className="absolute bottom-6 left-6">
-          <button className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-            Upgrade
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors flex items-center justify-center space-x-2"
+            title="Cerrar sesión"
+          >
+            {/* Ícono de cerrar sesión (ejemplo con SVG, puedes usar un ícono de librería si tienes) */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+              />
+            </svg>
+            <span>Cerrar sesión</span>
           </button>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col">
-        <div className="bg-white shadow-sm border-b border-gray-200 px-8 py-4">
+        <div
+          className="bg-white shadow-sm border-b border-gray-200 px-8 py-4 fixed top-0 right-0 z-30"
+          style={{ marginLeft: "16rem", width: "calc(100% - 16rem)" }}
+        >
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">
               {activeSection}
@@ -306,7 +341,7 @@ export default function HomePage() {
                   <img
                     src={user.photo_url}
                     alt={user.full_name}
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
@@ -315,21 +350,19 @@ export default function HomePage() {
                     </span>
                   </div>
                 )}
-                <button
-                  onClick={handleLogout}
-                  className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
-                  title="Cerrar sesión"
+                {/* Círculo rojo en la esquina superior derecha de la imagen de perfil */}
+                <div
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                  title="Estado del usuario"
                 >
-                  <span className="text-white text-xs">×</span>
-                </button>
+                  <span className="text-white text-xs font-bold">●</span> {/* Punto rojo */}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 p-8">
-          {renderContent()}
-        </div>
+        <div className="flex-1 p-8 mt-20 ml-64">{renderContent()}</div>
       </div>
     </div>
   );

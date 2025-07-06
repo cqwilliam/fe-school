@@ -6,6 +6,8 @@ interface MenuItem {
   id: string;
   label: string;
   icon: string;
+  disabled?: boolean;
+  tooltip?: string;
 }
 
 interface MenuItemsProps {
@@ -19,22 +21,80 @@ export default function MenuItems({
   activeSection,
   onSectionChange,
 }: MenuItemsProps) {
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
   return (
-    <nav className="mt-6">
-      {items.map((item) => (
-        <button
-          key={item.id}
-          onClick={() => onSectionChange(item.id)}
-          className={`w-full text-left px-6 py-3 flex items-center space-x-3 transition-colors ${
-            activeSection === item.id
-              ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-              : "text-gray-600 hover:bg-gray-50"
-          }`}
-        >
-          <span className="text-lg">{item.icon}</span>
-          <span className="font-medium">{item.label}</span>
-        </button>
-      ))}
+    <nav className="px-3 py-4 space-y-1" aria-label="Menú principal">
+      {items.map((item) => {
+        const isActive = activeSection === item.id;
+        const isHovered = hoveredItem === item.id;
+        const isDisabled = item.disabled;
+
+        return (
+          <button
+            key={item.id}
+            onClick={() => !isDisabled && onSectionChange(item.id)}
+            onMouseEnter={() => !isDisabled && setHoveredItem(item.id)}
+            onMouseLeave={() => setHoveredItem(null)}
+            disabled={isDisabled}
+            aria-disabled={isDisabled}
+            aria-current={isActive ? "page" : undefined}
+            aria-label={item.tooltip || item.label}
+            className={`relative w-full text-left px-4 py-2.5 rounded-lg 
+              ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+              flex items-center space-x-3 transition-all duration-200 ease-in-out
+              group overflow-hidden
+              ${
+                isActive
+                  ? "border border-blue-400 text-blue-400 bg-blue-50"
+                  : isDisabled
+                  ? "text-gray-400"
+                  : "text-gray-700 hover:text-blue-300 hover:bg-gray-100"
+              }
+            `}
+          >
+            {!isActive && isHovered && !isDisabled && (
+              <span className="absolute inset-0 bg-white opacity-10 blur-sm animate-pulse-once" />
+            )}
+
+            {isActive && (
+              <span className="absolute inset-0 bg-blue-50 opacity-30 animate-fade-in" />
+            )}
+
+            <div
+              className={`relative flex items-center justify-center w-8 h-8 rounded-md 
+                transition-all duration-200
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-400 border border-blue-400"
+                    : isDisabled
+                    ? "bg-gray-100 text-gray-400"
+                    : "bg-gray-200 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-400"
+                }
+              `}
+              title={item.tooltip}
+            >
+              <img
+                src={item.icon}
+                alt={item.label}
+                className="w-6 h-6 object-contain"
+              />
+            </div>
+
+            <span
+              className={`relative font-medium text-sm transition-all duration-200
+              ${isActive ? "text-blue-400" : ""}
+            `}
+            >
+              {item.label}
+            </span>
+
+            {isActive && (
+              <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-400 rounded-l-full animate-fade-in" />
+            )}
+          </button>
+        );
+      })}
     </nav>
   );
 }

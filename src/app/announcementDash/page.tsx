@@ -111,7 +111,7 @@ const AnnouncementDash = () => {
         ) : (
           <div className="space-y-4">
             {announcements.map((announcement) => (
-              <div key={announcement.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div key={announcement.id} className="bg-white rounded-3xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <h2 className="text-xl font-semibold text-gray-900 leading-tight">

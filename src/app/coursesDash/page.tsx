@@ -4,47 +4,17 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
 import { logout } from "../../lib/auth";
-
-interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  user_name: string;
-  email: string;
-  role: {
-    id: number;
-    name: string;
-  };
-}
-
-interface Course {
-  id: number;
-  name: string;
-}
-
-interface CourseMaterial {
-  id: number;
-  title: string;
-  description?: string;
-  file_url?: string;
-  created_at?: string;
-  course_id: number;
-}
-
-interface TeacherInfo {
-  id: number;
-  teacher_name: string;
-  teacher_email: string;
-  course_id: number;
-}
-
-interface CourseWithMaterials extends Course {
-  materials: CourseMaterial[];
-  teacher?: TeacherInfo;
-}
+import {
+  User,
+  Course,
+  CourseMaterial,
+  TeacherInfo,
+  CourseWithMaterials,
+  tasksMock
+} from "./types";
 
 const CoursesDash = () => {
-  const [user, setUser ] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [coursesWithMaterials, setCoursesWithMaterials] = useState<
     CourseWithMaterials[]
   >([]);
@@ -54,33 +24,11 @@ const CoursesDash = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const courseColors = [
-    { bg: "bg-red-50", border: "border-red-200", accent: "bg-red-500" },
-    { bg: "bg-green-50", border: "border-green-200", accent: "bg-green-500" },
-    { bg: "bg-blue-50", border: "border-blue-200", accent: "bg-blue-500" },
-    {
-      bg: "bg-purple-50",
-      border: "border-purple-200",
-      accent: "bg-purple-500",
-    },
-    {
-      bg: "bg-yellow-50",
-      border: "border-yellow-200",
-      accent: "bg-yellow-500",
-    },
-    { bg: "bg-pink-50", border: "border-pink-200", accent: "bg-pink-500" },
-    {
-      bg: "bg-indigo-50",
-      border: "border-indigo-200",
-      accent: "bg-indigo-500",
-    },
-    { bg: "bg-teal-50", border: "border-teal-200", accent: "bg-teal-500" },
-  ];
 
   useEffect(() => {
-    const fetchUser  = async () => {
+    const fetchUser = async () => {
       const token = localStorage.getItem("token");
-      console.log("Token:", token); // Verifica el token
+      console.log("Token:", token);
       if (!token) {
         router.push("/login");
         return;
@@ -88,8 +36,8 @@ const CoursesDash = () => {
 
       try {
         const userRes = await api.get("/current-user");
-        console.log("User  Response:", userRes.data); // Verifica la respuesta del usuario
-        setUser (userRes.data);
+        console.log("User Response:", userRes.data);
+        setUser(userRes.data);
       } catch (error) {
         console.error("Error al obtener el usuario:", error);
         setError("Error al cargar la información del usuario.");
@@ -100,7 +48,7 @@ const CoursesDash = () => {
       }
     };
 
-    fetchUser ();
+    fetchUser();
   }, [router]);
 
   useEffect(() => {
@@ -151,7 +99,6 @@ const CoursesDash = () => {
             teacher: courseTeachers.find((t) => t.course_id === course.id),
           }));
         } else {
-          // Para docentes, obtener los materiales de los cursos
           const materialsRes = await api.get(
             `/teachers/${user.id}/course-materials`
           );
@@ -256,24 +203,24 @@ const CoursesDash = () => {
           </div>
         </div>
 
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-3xl shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Información del curso
                 </h2>
                 <div className="space-y-3">
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-gray-500">ID del curso</p>
                     <p className="font-medium">{selectedCourse.id}</p>
-                  </div>
+                  </div> */}
                   {selectedCourse.teacher && (
                     <>
                       <div>
                         <p className="text-sm text-gray-500">Profesor</p>
                         <p className="font-medium">
-                          {selectedCourse.teacher.teacher_name}
+                          {selectedCourse.teacher.full_name}
                         </p>
                       </div>
                       <div>
@@ -291,17 +238,17 @@ const CoursesDash = () => {
             </div>
 
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="bg-white rounded-3xl shadow-sm border p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">
                   Materiales del curso
                 </h2>
 
                 {selectedCourse.materials.length > 0 ? (
                   <div className="space-y-4">
-                  {selectedCourse.materials.map((material, index) => (
+                    {selectedCourse.materials.map((material, index) => (
                       <div
                         key={`material-${material.id || index}`}
-                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                        className="border border-blue-200 rounded-3xl p-4 hover:bg-green-50 transition-colors"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -313,6 +260,11 @@ const CoursesDash = () => {
                                 {material.description}
                               </p>
                             )}
+                            {material.url && (
+                              <p className="text-sm text-gray-500 mb-3">
+                                {material.url}
+                              </p>
+                            )}
                             {material.created_at && (
                               <p className="text-xs text-gray-500">
                                 Creado:{" "}
@@ -322,9 +274,9 @@ const CoursesDash = () => {
                               </p>
                             )}
                           </div>
-                          {material.file_url && (
+                          {material.url && (
                             <a
-                              href={material.file_url}
+                              href={material.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center"
@@ -360,6 +312,40 @@ const CoursesDash = () => {
                     </p>
                   </div>
                 )}
+                <h2 className="text-lg font-semibold text-gray-900 mb-6 mt-8">
+                  Tareas
+                </h2>
+                {tasksMock.length > 0 ? (
+                  <div className="space-y-4">
+                    {tasksMock.map((task) => (
+                      <div
+                        key={task.id}
+                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <h3 className="font-medium text-gray-900 mb-2">
+                          {task.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {task.description}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Fecha de entrega:{" "}
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">📝</div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No hay tareas disponibles
+                    </h3>
+                    <p className="text-gray-600">
+                      Este curso aún no tiene tareas asignadas.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -369,52 +355,47 @@ const CoursesDash = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-white rounded-4xl">
+      <div className="border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Mis Cursos</h1>
-            {user && (
-              <div className="text-sm text-gray-600">
-                Bienvenido, {user.first_name} {user.last_name}
-              </div>
-            )}
+            <h1 className="text-2xl font-semibold text-gray-900">Mis Cursos</h1>
           </div>
         </div>
       </div>
 
-      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {coursesWithMaterials.length > 0 ? (
-          <div className="space-y-3">
-            {coursesWithMaterials.map((course, index) => {
-              const colorScheme = courseColors[index % courseColors.length];
-              return (
-                <div
-                  key={`course-${course.id || index}`}
-                  onClick={() => handleCourseClick(course)}
-                  className={`${colorScheme.bg} ${colorScheme.border} border-l-4 rounded-lg p-6 cursor-pointer hover:shadow-sm transition-all duration-200 group`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                        {course.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {course.teacher?.teacher_name || "Curso"}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>ID: {course.id}</span>
-                        {user?.role.name === "Estudiante" && (
-                          <span>{course.materials.length} materiales</span>
-                        )}
-                      </div>
+          <div className="grid grid-cols-1 gap-8">
+            {coursesWithMaterials.map((course) => {
+              const cardClasses = "bg-white hover:bg-gray-50 border border-gray-400 rounded-4xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg group";
+              const accentClasses = "bg-gray-900 h-1 w-12 rounded-full mb-4";
+                return (
+                  <div
+                    key={`course-${course.id}`}
+                    onClick={() => handleCourseClick(course)}
+                    className={cardClasses}
+                  >
+                    <div className={accentClasses}></div>
+                  
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {course.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {course.teacher?.full_name || "any"}
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      {user?.role.name === "Estudiante" && (
+                        <span>{course.materials.length} materiales</span>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`${colorScheme.accent} w-3 h-3 rounded-full`}
-                      ></div>
+                    <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
                       <svg
-                        className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -422,8 +403,8 @@ const CoursesDash = () => {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
+                          strokeWidth={1.5}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
                         />
                       </svg>
                     </div>
@@ -433,12 +414,12 @@ const CoursesDash = () => {
             })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="text-gray-400 text-8xl mb-6">📚</div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+          <div className="text-center py-20">
+            <div className="text-gray-300 text-6xl mb-4">📚</div>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">
               No tienes cursos asignados
             </h3>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-500">
               Cuando se te asignen cursos, aparecerán aquí.
             </p>
           </div>
