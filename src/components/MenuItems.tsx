@@ -46,10 +46,10 @@ export default function MenuItems({
               group overflow-hidden
               ${
                 isActive
-                  ? "border border-blue-400 text-blue-400 bg-blue-50"
+                  ? "border border-green-400 text-green-400 bg-green-50"
                   : isDisabled
                   ? "text-gray-400"
-                  : "text-gray-700 hover:text-blue-300 hover:bg-gray-100"
+                  : "text-gray-700 hover:border hover:border-green-400"
               }
             `}
           >
@@ -58,7 +58,7 @@ export default function MenuItems({
             )}
 
             {isActive && (
-              <span className="absolute inset-0 bg-blue-50 opacity-30 animate-fade-in" />
+              <span className="absolute inset-0 bg-green-50 opacity-30 animate-fade-in" />
             )}
 
             <div
@@ -66,10 +66,10 @@ export default function MenuItems({
                 transition-all duration-200
                 ${
                   isActive
-                    ? "bg-blue-100 text-blue-400 border border-blue-400"
+                    ? "bg-green-100 text-green-400 border border-green-400"
                     : isDisabled
                     ? "bg-gray-100 text-gray-400"
-                    : "bg-gray-200 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-400"
+                    : "text-gray-500 group-hover:bg-green-100 group-hover:text-green-400"
                 }
               `}
               title={item.tooltip}
@@ -83,14 +83,14 @@ export default function MenuItems({
 
             <span
               className={`relative font-medium text-sm transition-all duration-200
-              ${isActive ? "text-blue-400" : ""}
+              ${isActive ? "text-green-400" : ""}
             `}
             >
               {item.label}
             </span>
 
             {isActive && (
-              <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-400 rounded-l-full animate-fade-in" />
+              <div className="absolute right-0 top-0 bottom-0 w-1 bg-green-400 rounded-l-full animate-fade-in" />
             )}
           </button>
         );

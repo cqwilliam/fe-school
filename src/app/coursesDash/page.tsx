@@ -10,7 +10,7 @@ import {
   CourseMaterial,
   TeacherInfo,
   CourseWithMaterials,
-  tasksMock
+  tasksMock,
 } from "./types";
 
 const CoursesDash = () => {
@@ -23,7 +23,6 @@ const CoursesDash = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -368,16 +367,17 @@ const CoursesDash = () => {
         {coursesWithMaterials.length > 0 ? (
           <div className="grid grid-cols-1 gap-8">
             {coursesWithMaterials.map((course) => {
-              const cardClasses = "bg-white hover:bg-gray-50 border border-gray-400 rounded-4xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg group";
+              const cardClasses =
+                "bg-white hover:bg-gray-50 border border-gray-400 rounded-4xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg group";
               const accentClasses = "bg-gray-900 h-1 w-12 rounded-full mb-4";
-                return (
-                  <div
-                    key={`course-${course.id}`}
-                    onClick={() => handleCourseClick(course)}
-                    className={cardClasses}
-                  >
-                    <div className={accentClasses}></div>
-                  
+              return (
+                <div
+                  key={`course-${course.id}`}
+                  onClick={() => handleCourseClick(course)}
+                  className={cardClasses}
+                >
+                  <div className={accentClasses}></div>
+
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       {course.name}
@@ -386,7 +386,7 @@ const CoursesDash = () => {
                       {course.teacher?.full_name || "any"}
                     </p>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <div className="text-xs text-gray-500">
                       {user?.role.name === "Estudiante" && (

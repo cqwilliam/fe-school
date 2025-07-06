@@ -278,12 +278,12 @@ export default function HomePage() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <img
-                src='/Logo.png'
+                src="/Logo.png"
                 className="h-auto w-16 object-contain"
                 alt="Logo Pedro Paulet"
               />
             </div>
-            <h2 className="font-extrabold text-gray-900 text-3xl font-mono  text-center">
+            <h2 className="font-extrabold text-3xl font-stretch-50% text-center bg-clip-text text-transparent bg-gradient-to-r from-green-900 via-green-500 to-green-700">
               PEDRO PAULET
               <br />
             </h2>
@@ -296,14 +296,12 @@ export default function HomePage() {
           onSectionChange={setActiveSection}
         />
 
-        {/* Botón de Logout ahora en lugar de Upgrade */}
         <div className="absolute bottom-6 left-6">
           <button
             onClick={handleLogout}
             className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors flex items-center justify-center space-x-2"
             title="Cerrar sesión"
           >
-            {/* Ícono de cerrar sesión (ejemplo con SVG, puedes usar un ícono de librería si tienes) */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -350,12 +348,11 @@ export default function HomePage() {
                     </span>
                   </div>
                 )}
-                {/* Círculo rojo en la esquina superior derecha de la imagen de perfil */}
                 <div
                   className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
                   title="Estado del usuario"
                 >
-                  <span className="text-white text-xs font-bold">●</span> {/* Punto rojo */}
+                  <span className="text-white text-xs font-bold">●</span>{" "}
                 </div>
               </div>
             </div>

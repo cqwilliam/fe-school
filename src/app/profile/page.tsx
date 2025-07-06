@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import api from "../../lib/api";
+import Users from "../users/page";
+import CreateUser from "../users/create/page"; // Import your CreateUser component
 
 interface User {
   id: number;
@@ -50,7 +52,11 @@ const adminLinks = [
   { href: "/sections", label: "Gestión de Secciones", icon: "🏫" },
   { href: "/sectionsCourses", label: "Secciones por Curso", icon: "📚" },
   { href: "/periodsSections", label: "Secciones por Periodo", icon: "🎯" },
-  { href: "/periodsSectionsUsers", label: "Asignación de Secciones", icon: "📎" },
+  {
+    href: "/periodsSectionsUsers",
+    label: "Asignación de Secciones",
+    icon: "📎",
+  },
   { href: "/schedules", label: "Horarios", icon: "⏰" },
   { href: "/evaluationsTypes", label: "Tipos de Evaluación", icon: "📋" },
   { href: "/evaluations", label: "Evaluaciones", icon: "📊" },
@@ -76,6 +82,8 @@ export function Profile({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
+  const [showCreateUserForm, setShowCreateUserForm] = useState(false); // New state for CreateUser form
 
   const formatId = (id: number) => {
     return id.toString().padStart(8, "0");
@@ -84,7 +92,7 @@ export function Profile({
   const formatBirthDate = (age: number) => {
     const currentYear = new Date().getFullYear();
     const birthYear = currentYear - age;
-    return `${birthYear}/01/01`; // Asumiendo que solo tienes el año y asignas 01/01
+    return `${birthYear}/01/01`; // Assuming you only have the year and assign 01/01
   };
 
   const resetPasswordForm = () => {
@@ -125,6 +133,24 @@ export function Profile({
     }
   };
 
+  // Function to handle showing/hiding the Create User form
+  const handleToggleCreateUserForm = () => {
+    setShowCreateUserForm(!showCreateUserForm);
+    // Optionally, hide the user list when showing the create form
+    if (!showCreateUserForm) {
+      setShowUserList(false);
+    }
+  };
+
+  // Function to handle showing/hiding the User List
+  const handleToggleUserList = () => {
+    setShowUserList(!showUserList);
+    // Optionally, hide the create user form when showing the user list
+    if (!showUserList) {
+      setShowCreateUserForm(false);
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -162,9 +188,7 @@ export function Profile({
                 <label className="text-sm font-semibold text-gray-500 block mb-1">
                   ID de Usuario
                 </label>
-                <p className="text-gray-800 font-medium">
-                  {formatId(user.id)}
-                </p>
+                <p className="text-gray-800 font-medium">{formatId(user.id)}</p>
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-500 block mb-1">
@@ -211,6 +235,30 @@ export function Profile({
               </div>
             </div>
 
+            {user.role_name === "Administrador" && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h4 className="text-xl font-bold text-gray-800 mb-4">
+                  Administración de Usuarios
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <button
+                    onClick={handleToggleUserList}
+                    className="px-5 py-2 border border-blue-600 text-blue-800 hover:text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    {showUserList ? "Ocultar Lista de Usuarios" : "Mostrar Lista de Usuarios"}
+                  </button>
+                  <button
+                    onClick={handleToggleCreateUserForm}
+                    className="px-5 py-2 border border-green-600 text-green-800 rounded-lg hover:bg-green-700  hover:text-white transition-colors font-medium"
+                  >
+                    {showCreateUserForm ? "Ocultar Formulario de Creación" : "Crear Nuevo Usuario"}
+                  </button>
+                </div>
+                {showUserList && <Users />}
+                {showCreateUserForm && <CreateUser />}
+              </div>
+            )}
+
             {user.role_name === "Estudiante" && sections.length > 0 && (
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <h4 className="text-xl font-bold text-gray-800 mb-4">
@@ -232,27 +280,24 @@ export function Profile({
               </div>
             )}
 
-            {(user.role_name === "Docente" || user.role_name === "Profesor") &&
-              courses.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h4 className="text-xl font-bold text-gray-800 mb-4">
-                    Mis Cursos
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {courses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-center space-x-3"
-                      >
-                        <span className="text-gray-600 text-lg">📚</span>
-                        <p className="text-gray-800 font-medium">
-                          {course.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+            {user.role_name === "Docente" && courses.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h4 className="text-xl font-bold text-gray-800 mb-4">
+                  Mis Cursos
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {courses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-gray-50 rounded-lg p-4 border border-gray-200 flex items-center space-x-3"
+                    >
+                      <span className="text-gray-600 text-lg">📚</span>
+                      <p className="text-gray-800 font-medium">{course.name}</p>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {user.role_name === "Estudiante" && studentGuardians.length > 0 && (
               <div className="mt-8 pt-6 border-t border-gray-200">

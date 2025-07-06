@@ -9,7 +9,7 @@ const UserCreate = () => {
   const userId = searchParams.get("userId");
 
   const handleSubmit = () => {
-      router.push("/users");
+      router.push("/home");
     }
 
   return <UserBuilder userId={userId ?? undefined} afterSubmit={handleSubmit} />;
