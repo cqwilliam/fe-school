@@ -13,6 +13,11 @@ export interface User {
 export interface Course {
   id: number;
   name: string;
+  teachers: {
+    id: number;
+    teacher_name: string;
+    teacher_email: string;
+  }[]
 }
 
 export interface CourseMaterial {
@@ -26,7 +31,7 @@ export interface CourseMaterial {
 
 export interface TeacherInfo {
   id: number;
-  full_name: string;
+  teacher_name: string;
   teacher_email: string;
   course_id: number;
 }

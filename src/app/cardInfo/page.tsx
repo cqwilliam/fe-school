@@ -13,11 +13,11 @@ interface Message {
   created_at?: string;
   updated_at?: string;
   sender?: {
-    full_name: string;
+    name: string;
     photo_url?: string;
   };
   target?: {
-    full_name: string;
+    name: string;
     photo_url?: string;
   };
 }
@@ -26,7 +26,7 @@ const MessageDash: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{ id: number; full_name: string } | null>(
+  const [user, setUser] = useState<{ id: number; name: string } | null>(
     null
   );
   const [showCreateMessage, setShowCreateMessage] = useState(false);
@@ -49,7 +49,7 @@ const MessageDash: React.FC = () => {
         const response = await api.get("/current-user");
         setUser({
           id: response.data.id,
-          full_name: response.data.full_name || "Usuario",
+          name: response.data.name || "Usuario",
         });
       } catch (error) {
         console.error("Error al cargar usuario:", error);
@@ -226,12 +226,12 @@ const MessageDash: React.FC = () => {
         <div className="space-y-4">
           {messages.map((message, index) => {
             const isSentByUser = message.sender_user_id === user.id;
-            const displayRecipientName = message.target?.full_name || `Usuario ${message.target_user_id}`;
-            const displaySenderName = message.sender?.full_name || `Usuario ${message.sender_user_id}`;
-            const recipientText = isSentByUser ? `Para: ${displayRecipientName}` : '';
+            const displayRecipientName = message.target?.name || `Usuario ${message.target_user_id}`;
+            // const displaySenderName = message.sender?.name || `Usuario ${message.sender_user_id}`;
+            // const recipientText = isSentByUser ? `Para: ${displayRecipientName}` : '';
             const senderInitial = isSentByUser
-              ? getSafeInitial(user.full_name)
-              : getSafeInitial(message.sender?.full_name);
+              ? getSafeInitial(user.name)
+              : getSafeInitial(message.sender?.name);
 
             return (
               <div
@@ -254,18 +254,8 @@ const MessageDash: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="font-medium text-gray-900">
-                        {isSentByUser ? "Tú" : displaySenderName}
+                        {isSentByUser ? "Tú" : displayRecipientName}
                       </h2>
-                      {recipientText && (
-                        <p className="text-sm text-gray-500">
-                          {recipientText}
-                        </p>
-                      )}
-                      {!isSentByUser && (
-                        <p className="text-sm text-gray-500">
-                          De: {displaySenderName}
-                        </p>
-                      )}
                     </div>
                   </div>
                   <span className="text-sm text-gray-500">

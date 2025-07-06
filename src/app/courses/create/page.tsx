@@ -9,7 +9,7 @@ const CourseCreate = () => {
   const courseId = searchParams.get("courseId");
 
   const handleSubmit = () => {
-    router.push("/courses");
+    router.push("/home");
   };
 
   return (

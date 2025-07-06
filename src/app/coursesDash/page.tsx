@@ -12,6 +12,8 @@ import {
   CourseWithMaterials,
   tasksMock,
 } from "./types";
+import Courses from "../courses/page";
+import CreateCourse from "../courses/create/page"; // Asegúrate de que esta ruta sea correcta
 
 const CoursesDash = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +24,7 @@ const CoursesDash = () => {
     useState<CourseWithMaterials | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateCourseForm, setShowCreateCourseForm] = useState(false); // Nuevo estado
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +56,11 @@ const CoursesDash = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
+
+      if (user.role.name === "Administrador") {
+        setLoading(false); // Terminamos la carga si es administrador y no necesitamos más datos de cursos aquí
+        return;
+      }
 
       try {
         const endpoint =
@@ -124,6 +132,8 @@ const CoursesDash = () => {
             : "Error desconocido al cargar los datos"
         );
         setCoursesWithMaterials([]);
+      } finally {
+        setLoading(false); // Mover esto aquí asegura que `loading` se desactive después de intentar cargar datos
       }
     };
 
@@ -138,12 +148,17 @@ const CoursesDash = () => {
     setSelectedCourse(null);
   };
 
+  // Nueva función para alternar la visibilidad de CreateCourse
+  const handleToggleCreateCourseForm = () => {
+    setShowCreateCourseForm(!showCreateCourseForm);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando cursos...</p>
+          <p className="mt-4 text-gray-600">Cargando...</p>
         </div>
       </div>
     );
@@ -165,6 +180,31 @@ const CoursesDash = () => {
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (user?.role.name === "Administrador") {
+    return (
+      <div className="min-h-screen bg-white rounded-4xl p-6">
+        <div className="border-b border-gray-100 pb-4 mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Panel de Administración de Cursos
+          </h1>
+        </div>
+        <div className="mb-6">
+          <button
+            onClick={handleToggleCreateCourseForm}
+            className="px-5 py-2 border border-green-600 text-green-800 rounded-lg hover:bg-green-700 hover:text-white transition-colors font-medium"
+          >
+            {showCreateCourseForm ? "Ocultar Formulario de Creación" : "Crear Nuevo Curso"}
+          </button>
+        </div>
+        {showCreateCourseForm ? (
+          <CreateCourse />
+        ) : (
+          <Courses /> // Muestra la lista de cursos si no se está creando uno nuevo
+        )}
       </div>
     );
   }
@@ -210,16 +250,12 @@ const CoursesDash = () => {
                   Información del curso
                 </h2>
                 <div className="space-y-3">
-                  {/* <div>
-                    <p className="text-sm text-gray-500">ID del curso</p>
-                    <p className="font-medium">{selectedCourse.id}</p>
-                  </div> */}
                   {selectedCourse.teacher && (
                     <>
                       <div>
                         <p className="text-sm text-gray-500">Profesor</p>
                         <p className="font-medium">
-                          {selectedCourse.teacher.full_name}
+                          {selectedCourse.teacher.teacher_name}
                         </p>
                       </div>
                       <div>
@@ -383,7 +419,7 @@ const CoursesDash = () => {
                       {course.name}
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      {course.teacher?.full_name || "any"}
+                      {course.teacher?.teacher_name || "any"}
                     </p>
                   </div>
 

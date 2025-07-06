@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import api from "../../lib/api"; // Asegúrate de que 'api' esté configurado correctamente
-import UserCreate from "./create/page";
+import api from "../../lib/api";
+import UserCreate from "./create/page"; 
 
-// --- Interfaces ---
 interface User {
   id: number;
   first_name: string;
@@ -33,32 +32,34 @@ const Users = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filterRole, setFilterRole] = useState<UserRole>("all");
+  const [deletingId, setDeletingId] = useState<number | null>(null); 
+
+  // Función para obtener los usuarios
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get("/users");
+
+      if (response.data.success) {
+        setUsers(response.data.data);
+      } else {
+        setError(
+          response.data.message || "No se pudo obtener la lista de usuarios."
+        );
+      }
+    } catch (err: any) {
+      console.error("Error al obtener usuarios:", err);
+      setError(
+        err.response?.data?.message ||
+          "Error al cargar usuarios. Intente de nuevo más tarde."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        setError(null); // Limpiar errores previos
-        const response = await api.get("/users");
-
-        if (response.data.success) {
-          setUsers(response.data.data);
-        } else {
-          setError(
-            response.data.message || "No se pudo obtener la lista de usuarios."
-          );
-        }
-      } catch (err: any) {
-        console.error("Error al obtener usuarios:", err); // Para depuración
-        setError(
-          err.response?.data?.message ||
-            "Error al cargar usuarios. Intente de nuevo más tarde."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
 
@@ -69,42 +70,63 @@ const Users = () => {
     return users.filter((user) => user.role_name.toLowerCase() === filterRole);
   }, [users, filterRole]);
 
-  const handleShow = (id: number) => router.push(`/users/${id}`);
+  const handleShow = (id: number) => router.push(`/users/${id}`); // No se usa en el renderizado actual, pero se mantiene.
   const handleUpdate = (id: number) => router.push(`/users/${id}/update`);
-  const handleCreate = () => router.push("/users/create");
+  const handleCreate = () => router.push("/users/create"); // Descomentado en tu original, puedes volver a usarlo.
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilterRole(e.target.value as UserRole);
   };
 
+  const handleDelete = async (id: number) => {
+    if (
+      !window.confirm("¿Estás seguro de que quieres eliminar este usuario?")
+    ) {
+      return; // Si el usuario cancela, no hacemos nada
+    }
+
+    setDeletingId(id); // Indica que estamos intentando eliminar este ID
+    try {
+      const response = await api.delete(`/users/${id}`);
+
+      if (response.data.success) {
+        // Si la eliminación fue exitosa, actualiza la lista de usuarios
+        setUsers(users.filter((user) => user.id !== id));
+        alert("Usuario eliminado correctamente.");
+      } else {
+        setError(response.data.message || "No se pudo eliminar el usuario.");
+      }
+    } catch (err: any) {
+      console.error("Error al eliminar usuario:", err);
+      setError(
+        err.response?.data?.message ||
+          "Error al eliminar el usuario. Intente de nuevo más tarde."
+      );
+    } finally {
+      setDeletingId(null); // Restablece el estado de eliminación
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-5xl font-sans text-gray-800">
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-700">
-        Gestión de Usuarios
-      </h1>
-
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <button
-          onClick={handleCreate}
-          className="px-6 py-3 bg-purple-700 text-white font-bold rounded-lg shadow-lg hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-300 ease-in-out text-lg"
-        >
-          Crear Nuevo Usuario
-        </button>
-        <div className="flex items-center gap-2">
-          <label htmlFor="roleFilter" className="font-semibold text-gray-600">
-            Filtrar por Rol:
-          </label>
-          <select
-            id="roleFilter"
-            value={filterRole}
-            onChange={handleFilterChange}
-            className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 ease-in-out min-w-[150px]"
-          >
-            <option value="all">Todos</option>
-            <option value="administrador">Administrador</option>
-            <option value="docente">Docente</option>
-            <option value="estudiante">Estudiante</option>
-            <option value="apoderado">Apoderado</option>
-          </select>
+      <div className="flex justify-end items-center mb-6 flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex content-end items-center gap-2">
+            <label htmlFor="roleFilter" className="font-semibold text-gray-600">
+              Filtrar por Rol:
+            </label>
+            <select
+              id="roleFilter"
+              value={filterRole}
+              onChange={handleFilterChange}
+              className="p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 ease-in-out min-w-[150px]"
+            >
+              <option value="all">Todos</option>
+              <option value="administrador">Administrador</option>
+              <option value="docente">Docente</option>
+              <option value="estudiante">Estudiante</option>
+              <option value="apoderado">Apoderado</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -212,16 +234,21 @@ const Users = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleShow(user.id)}
-                        className="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-150 ease-in-out"
-                      >
-                        Ver
-                      </button>
-                      <button
                         onClick={() => handleUpdate(user.id)}
                         className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition duration-150 ease-in-out"
                       >
                         Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className={`px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-150 ease-in-out ${
+                          deletingId === user.id
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={deletingId === user.id}
+                      >
+                        {deletingId === user.id ? "Eliminando..." : "Eliminar"}
                       </button>
                     </div>
                   </td>

@@ -9,7 +9,7 @@ const MessageCreate = () => {
   const messageId = searchParams.get("messageId");
 
   const handleSubmit = () => {
-    router.push("/messages");
+    router.push("/home");
   };
   return (
     <div>

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import api from "../../lib/api";
 import Users from "../users/page";
-import CreateUser from "../users/create/page"; // Import your CreateUser component
+import CreateUser from "../users/create/page";
+import StudentsGuardians from "../studentsGuardians/page"; // Import StudentsGuardians component
+import CreateStudentsGuardians from "../studentsGuardians/create/page"; // Import CreateStudentsGuardians component
 
 interface User {
   id: number;
@@ -83,7 +85,11 @@ export function Profile({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
-  const [showCreateUserForm, setShowCreateUserForm] = useState(false); // New state for CreateUser form
+  const [showCreateUserForm, setShowCreateUserForm] = useState(false);
+  const [showStudentsGuardiansList, setShowStudentsGuardiansList] =
+    useState(false); // New state for StudentsGuardians list
+  const [showCreateStudentsGuardiansForm, setShowCreateStudentsGuardiansForm] =
+    useState(false); // New state for CreateStudentsGuardians form
 
   const formatId = (id: number) => {
     return id.toString().padStart(8, "0");
@@ -148,6 +154,24 @@ export function Profile({
     // Optionally, hide the create user form when showing the user list
     if (!showUserList) {
       setShowCreateUserForm(false);
+    }
+  };
+
+  // Function to handle showing/hiding the Create StudentsGuardians form
+  const handleToggleCreateStudentsGuardiansForm = () => {
+    setShowCreateStudentsGuardiansForm(!showCreateStudentsGuardiansForm);
+    // Optionally, hide the students guardians list when showing the create form
+    if (!showCreateStudentsGuardiansForm) {
+      setShowStudentsGuardiansList(false);
+    }
+  };
+
+  // Function to handle showing/hiding the StudentsGuardians List
+  const handleToggleStudentsGuardiansList = () => {
+    setShowStudentsGuardiansList(!showStudentsGuardiansList);
+    // Optionally, hide the create students guardians form when showing the list
+    if (!showStudentsGuardiansList) {
+      setShowCreateStudentsGuardiansForm(false);
     }
   };
 
@@ -234,7 +258,6 @@ export function Profile({
                 </button>
               </div>
             </div>
-
             {user.role_name === "Administrador" && (
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <h4 className="text-xl font-bold text-gray-800 mb-4">
@@ -245,17 +268,49 @@ export function Profile({
                     onClick={handleToggleUserList}
                     className="px-5 py-2 border border-blue-600 text-blue-800 hover:text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
-                    {showUserList ? "Ocultar Lista de Usuarios" : "Mostrar Lista de Usuarios"}
+                    {showUserList
+                      ? "Ocultar Lista de Usuarios"
+                      : "Mostrar Lista de Usuarios"}
                   </button>
                   <button
                     onClick={handleToggleCreateUserForm}
                     className="px-5 py-2 border border-green-600 text-green-800 rounded-lg hover:bg-green-700  hover:text-white transition-colors font-medium"
                   >
-                    {showCreateUserForm ? "Ocultar Formulario de Creación" : "Crear Nuevo Usuario"}
+                    {showCreateUserForm
+                      ? "Ocultar Formulario de Creación"
+                      : "Crear Nuevo Usuario"}
                   </button>
                 </div>
                 {showUserList && <Users />}
                 {showCreateUserForm && <CreateUser />}
+              </div>
+            )}
+
+            {user.role_name === "Administrador" && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h4 className="text-xl font-bold text-gray-800 mb-4">
+                  Administración de Apoderados
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <button
+                    onClick={handleToggleStudentsGuardiansList}
+                    className="px-5 py-2 border border-purple-600 text-purple-800 hover:text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                  >
+                    {showStudentsGuardiansList
+                      ? "Ocultar Lista de Apoderados"
+                      : "Mostrar Lista de Apoderados"}
+                  </button>
+                  <button
+                    onClick={handleToggleCreateStudentsGuardiansForm}
+                    className="px-5 py-2 border border-orange-600 text-orange-800 rounded-lg hover:bg-orange-700 hover:text-white transition-colors font-medium"
+                  >
+                    {showCreateStudentsGuardiansForm
+                      ? "Ocultar Formulario de Creación"
+                      : "Crear Nueva Relación"}
+                  </button>
+                </div>
+                {showStudentsGuardiansList && <StudentsGuardians />}
+                {showCreateStudentsGuardiansForm && <CreateStudentsGuardians />}
               </div>
             )}
 
@@ -414,7 +469,6 @@ export function Profile({
         </div>
       )}
 
-      {/* Modal para cambiar contraseña */}
       {editingPassword && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100 opacity-100">

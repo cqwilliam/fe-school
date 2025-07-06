@@ -79,7 +79,8 @@ export default function HomePage() {
 
   const router = useRouter();
 
-  const menuItems: MenuItem[] = [
+  // Define all possible menu items
+  const allMenuItems: MenuItem[] = [
     { id: "perfil", label: "Perfil", icon: "/Home.png" },
     { id: "cursos", label: "Cursos", icon: "/Graduation.png" },
     { id: "asistencias", label: "Asistencia", icon: "/Calendar.png" },
@@ -87,6 +88,10 @@ export default function HomePage() {
     { id: "comunicados", label: "Comunicados", icon: "/Form.png" },
     { id: "mensajes", label: "Mensajes", icon: "/Message.png" },
   ];
+
+  // State to hold filtered menu items
+  const [filteredMenuItems, setFilteredMenuItems] =
+    useState<MenuItem[]>(allMenuItems);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -110,6 +115,23 @@ export default function HomePage() {
 
     fetchUser();
   }, [router]);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role_name === "Apoderado") {
+        const restrictedItems = ["cursos"];
+        const filtered = allMenuItems.filter(
+          (item) => !restrictedItems.includes(item.id)
+        );
+        setFilteredMenuItems(filtered);
+        if (restrictedItems.includes(activeSection)) {
+          setActiveSection("perfil");
+        }
+      } else {
+        setFilteredMenuItems(allMenuItems); // Show all menu items for other roles
+      }
+    }
+  }, [user, activeSection]); // Re-run when user or activeSection changes
 
   useEffect(() => {
     const fetchStudentGuardians = async () => {
@@ -291,7 +313,7 @@ export default function HomePage() {
         </div>
 
         <MenuItems
-          items={menuItems}
+          items={filteredMenuItems} // Use the filtered menu items here
           activeSection={activeSection}
           onSectionChange={setActiveSection}
         />

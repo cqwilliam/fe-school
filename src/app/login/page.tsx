@@ -24,7 +24,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-white font-mono">
       <div className="flex-1 flex items-center justify-center relative">
-        <div className="absolute right-0 h-60 w-px bg-gray-600 opacity-50"></div>
+        <div className="absolute right-0 h-40 w-px bg-green-800 opacity-50"></div>
         <div className="flex flex-col items-center">
           <Image
             src="/Logo.png"
