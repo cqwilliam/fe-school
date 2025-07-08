@@ -20,7 +20,7 @@ const SchedulesDash = () => {
   const router = useRouter();
 
   const STUDENT_DEFAULT_TYPE = '1°';
-  const TEACHER_DEFAULT_ID = 'T001';
+  const TEACHER_DEFAULT_ID = 'Juuan';
   const APODERADO_CHILDREN_INFO = useMemo(() => [
     { name: 'Ana Lopez', type: '4°' },
     { name: 'Pedro Gomez', type: '5°' },
@@ -30,41 +30,41 @@ const SchedulesDash = () => {
     {
       day: 'Lunes',
       courses: [
-        { id: 1, name: 'Matemáticas', time: '08:00 - 10:00', type: '4°', teacherId: 'T001' },
-        { id: 2, name: 'Programación', time: '14:00 - 16:00', type: '5°', teacherId: 'T002' }
+        { id: 1, name: 'Matemáticas', time: '08:00 - 10:00', type: '4°', teacher_nombre: 'Juuan' },
+        { id: 2, name: 'Programación', time: '14:00 - 16:00', type: '5°', teacher_nombre: 'PEdro' }
       ]
     },
     {
       day: 'Martes',
       courses: [
-        { id: 3, name: 'Física', time: '10:00 - 12:00', type: '4°', teacherId: 'T003' },
-        { id: 13, name: 'Educación Física', time: '10:00 - 12:00', type: '5°', teacherId: 'T001' },
-        { id: 14, name: 'Química', time: '08:00 - 10:00', type: '1°', teacherId: 'T002' },
-        { id: 15, name: 'Biología', time: '10:00 - 12:00', type: '1°', teacherId: 'T003' },
+        { id: 3, name: 'Física', time: '10:00 - 12:00', type: '4°', teacher_nombre: 'Peres' },
+        { id: 13, name: 'Educación Física', time: '10:00 - 12:00', type: '5°', teacher_nombre: 'Juuan' },
+        { id: 14, name: 'Química', time: '08:00 - 10:00', type: '1°', teacher_nombre: 'PEdro' },
+        { id: 15, name: 'Biología', time: '10:00 - 12:00', type: '1°', teacher_nombre: 'Peres' },
       ]
     },
     {
       day: 'Miércoles',
       courses: [
-        { id: 4, name: 'Química', time: '08:00 - 10:00', type: '1°', teacherId: 'T002' },
-        { id: 5, name: 'Historia', time: '11:00 - 13:00', type: '2°', teacherId: 'T001' },
-        { id: 8, name: 'Filosofía', time: '09:00 - 11:00', type: '1°', teacherId: 'T003' },
-        { id: 9, name: 'Literatura', time: '10:00 - 12:00', type: '1°', teacherId: 'T001' },
-        { id: 10, name: 'Artes Visuales', time: '14:00 - 16:00', type: '1°', teacherId: 'T002' },
+        { id: 4, name: 'Química', time: '08:00 - 10:00', type: '1°', teacher_nombre: 'PEdro' },
+        { id: 5, name: 'Historia', time: '11:00 - 13:00', type: '2°', teacher_nombre: 'Juuan' },
+        { id: 8, name: 'Filosofía', time: '09:00 - 11:00', type: '1°', teacher_nombre: 'Peres' },
+        { id: 9, name: 'Literatura', time: '10:00 - 12:00', type: '1°', teacher_nombre: 'Juuan' },
+        { id: 10, name: 'Artes Visuales', time: '14:00 - 16:00', type: '1°', teacher_nombre: 'PEdro' },
       ]
     },
     {
       day: 'Jueves',
       courses: [
-        { id: 6, name: 'Arte', time: '09:00 - 11:00', type: '3°', teacherId: 'T003' }
+        { id: 6, name: 'Arte', time: '09:00 - 11:00', type: '3°', teacher_nombre: 'Peres' }
       ]
     },
     {
       day: 'Viernes',
       courses: [
-        { id: 7, name: 'Educación Física', time: '10:00 - 12:00', type: '5°', teacherId: 'T001' },
-        { id: 11, name: 'Geografía', time: '08:00 - 10:00', type: '1°', teacherId: 'T002' },
-        { id: 12, name: 'Economía', time: '08:00 - 10:00', type: '1°', teacherId: 'T003' },
+        { id: 7, name: 'Educación Física', time: '10:00 - 12:00', type: '5°', teacher_nombre: 'Juuan' },
+        { id: 11, name: 'Geografía', time: '08:00 - 10:00', type: '1°', teacher_nombre: 'PEdro' },
+        { id: 12, name: 'Economía', time: '08:00 - 10:00', type: '1°', teacher_nombre: 'Peres' },
       ]
     }
   ];
@@ -119,7 +119,7 @@ const SchedulesDash = () => {
           roleSpecificFilter = course.type === STUDENT_DEFAULT_TYPE;
           break;
         case 'Docente':
-          roleSpecificFilter = course.teacherId === TEACHER_DEFAULT_ID;
+          roleSpecificFilter = course.teacher_nombre === TEACHER_DEFAULT_ID;
           break;
         case 'Apoderado':
           const selectedChildInfo = APODERADO_CHILDREN_INFO.find(child => child.name === parentSelectedChildType);
@@ -296,7 +296,7 @@ const SchedulesDash = () => {
                               <div key={course.id} className="bg-green-50 rounded-lg shadow-sm p-3 border border-green-200 hover:shadow-md transition-shadow duration-200">
                                 <h3 className="font-bold text-green-800 mb-1 text-base">{course.name}</h3>
                                 <p className="text-xs text-gray-600 mb-1">⏰ {course.time}</p>
-                                <p className="text-xs text-gray-500 mb-2">ID Docente: {course.teacherId}</p>
+                                <p className="text-xs text-gray-500 mb-2">Docente: {course.teacher_nombre}</p>
                                 <span className={`inline-block text-xs px-3 py-1 rounded-full font-medium ${getCourseTypeColorClass(course.type)}`}>
                                   {course.type}
                                 </span>

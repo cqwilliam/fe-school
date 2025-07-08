@@ -9,7 +9,7 @@ import AnnouncementDash from "../announcementDash/page";
 import MessageDash from "../cardInfo/page";
 import api from "../../lib/api";
 import { logout } from "../../lib/auth";
-import ScheduleDash from "../schedulesDash/page";
+import ScheduleDash from "../scheduleDash/page";
 import AttendancesDash from "../attendancesDash/page";
 
 interface MenuItem {

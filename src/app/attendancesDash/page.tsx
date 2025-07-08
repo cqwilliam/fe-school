@@ -1,73 +1,246 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
-const CoursesDash = () => {
+// --- Simulated Backend Data ---
+const allStudentsData = [
+  { id: 's1', name: 'Ana Lopez' },
+  { id: 's2', name: 'Sofia Vargas' },
+  { id: 's3', name: 'Carlos Ruiz' },
+  { id: 's4', name: 'Pedro Gomez' },
+  { id: 's5', name: 'Luis Garcia' },
+  { id: 's6', name: 'Maria Solis' },
+];
+
+const coursesData = [
+  { id: 1, name: 'Matemáticas', type: '4°', teacher: 'Profesor Juan', studentIds: ['s1', 's2'] },
+  { id: 2, name: 'Física', type: '4°', teacher: 'Profesor Juan', studentIds: ['s1', 's3'] },
+  { id: 3, name: 'Programación', type: '5°', teacher: 'Profesora Maria', studentIds: ['s4', 's5'] },
+  { id: 4, name: 'Historia', type: '2°', teacher: 'Profesora Laura', studentIds: ['s1', 's6'] },
+  { id: 5, name: 'Química', type: '1°', teacher: 'Profesor Roberto', studentIds: ['s2', 's3', 's5'] },
+  { id: 6, name: 'Arte', type: '3°', teacher: 'Profesor Juan', studentIds: ['s4', 's6'] },
+  { id: 7, name: 'Educación Física', type: '5°', teacher: 'Profesora Elena', studentIds: ['s6', 's4'] },
+];
+
+// Mock Schedule - defines which courses happen on which days
+// Note: This needs to reflect all days for which attendance data might exist for students.
+const mockSchedule = {
+  '2025-06-10': [1, 2, 3, 4, 5, 6, 7], // All courses could be scheduled
+  '2025-06-11': [1, 3, 4, 7, 2],
+  '2025-06-12': [2, 5, 6, 1, 3],
+  '2025-06-13': [1, 3, 5, 4, 7],
+  '2025-06-14': [2, 6, 4],
+};
+
+// --- End Simulated Backend Data ---
+
+const AttendancesDash = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [role, setRole] = useState('Estudiante'); // Default role
-  const [selectedChild, setSelectedChild] = useState('');
+  const [role, setRole] = useState('Estudiante');
+  const [selectedChildId, setSelectedChildId] = useState('');
+  // For student/apoderado, we might not need a single selectedDate initially,
+  // but rather a range or a list of available dates.
+  // For simplicity, we'll keep `selectedDate` to filter the *display*, but the student view will iterate dates.
+  const [selectedDate, setSelectedDate] = useState(new Date('2025-06-10').toISOString().slice(0, 10)); 
 
-  const loggedInStudentName = 'Ana Lopez';
-  const loggedInTeacherName = 'Profesor Juan'; // Example for a teacher
-  const apoderadoChildrenNames = ['Ana Lopez', 'Pedro Gomez'];
+  // Store attendance with a unique key: `${date}_${courseId}_${studentId}`
+  const [attendanceRecords, setAttendanceRecords] = useState<Record<string, string>>({});
+  const [expandedCourseId, setExpandedCourseId] = useState<number | null>(null); // For Admin/Teacher to expand student list
+  const [expandedDate, setExpandedDate] = useState<string | null>(null); // For Student/Apoderado to expand specific date details
 
-  const coursesData = [
-    { id: 1, name: 'Matemáticas', type: '4°', teacher: 'Profesor Juan', students: ['Ana Lopez', 'Sofia Vargas'] },
-    { id: 2, name: 'Física', type: '4°', teacher: 'Profesor Juan', students: ['Ana Lopez', 'Carlos Ruiz'] },
-    { id: 3, name: 'Programación', type: '5°', teacher: 'Profesora Maria', students: ['Pedro Gomez', 'Luis Garcia'] },
-    { id: 4, name: 'Historia', type: '2°', teacher: 'Profesora Laura', students: ['Ana Lopez', 'Maria Solis'] },
-    { id: 5, name: 'Química', type: '1°', teacher: 'Profesor Roberto', students: ['Sofia Vargas', 'Carlos Ruiz', 'Luis Garcia'] },
-    { id: 6, name: 'Arte', type: '3°', teacher: 'Profesor Juan', students: ['Pedro Gomez', 'Maria Solis'] },
-    { id: 7, name: 'Educación Física', type: '5°', teacher: 'Profesora Elena', students: ['Maria Solis', 'Pedro Gomez'] },
-  ];
+
+  // Simulated logged-in user data
+  const loggedInStudentId = 's1';
+  const loggedInTeacherName = 'Profesor Juan';
+  const apoderadoChildrenIds = ['s1', 's4']; // IDs of children for the guardian
+
+  // Helper to get student name by ID
+  const getStudentNameById = useCallback((studentId: string) => {
+    return allStudentsData.find(s => s.id === studentId)?.name || 'Estudiante Desconocido';
+  }, []);
+
+  // Helper to get course by ID
+  const getCourseById = useCallback((courseId: number) => {
+    return coursesData.find(c => c.id === courseId);
+  }, []);
+
+  // Simulate fetching and populating attendance records for all mock dates
+  useEffect(() => {
+    const initialRecords: Record<string, string> = {};
+
+    const mockAttendanceData = [
+      // 2025-06-10
+      { date: '2025-06-10', courseId: 1, studentId: 's1', status: 'Presente' }, // Ana Matemáticas
+      { date: '2025-06-10', courseId: 4, studentId: 's1', status: 'Ausente' },   // Ana Historia
+      { date: '2025-06-10', courseId: 2, studentId: 's1', status: 'Tardanza' },  // Ana Física (new for s1)
+      { date: '2025-06-10', courseId: 3, studentId: 's4', status: 'Ausente' },   // Pedro Programación
+      { date: '2025-06-10', courseId: 6, studentId: 's4', status: 'Presente' },  // Pedro Arte
+
+      // 2025-06-11
+      { date: '2025-06-11', courseId: 1, studentId: 's1', status: 'Tardanza' },
+      { date: '2025-06-11', courseId: 4, studentId: 's1', status: 'Presente' },
+      { date: '2025-06-11', courseId: 3, studentId: 's4', status: 'Presente' },
+      { date: '2025-06-11', courseId: 7, studentId: 's6', status: 'Presente' },
+
+      // 2025-06-12
+      { date: '2025-06-12', courseId: 5, studentId: 's2', status: 'Presente' },
+      { date: '2025-06-12', courseId: 4, studentId: 's1', status: 'Ausente' },
+      { date: '2025-06-12', courseId: 5, studentId: 's3', status: 'Presente' },
+    ];
+
+    // Iterate through all mock schedule dates to set initial attendance
+    Object.keys(mockSchedule).forEach(date => {
+        const courseIdsForDate = mockSchedule[date];
+        courseIdsForDate.forEach(courseId => {
+            const course = getCourseById(courseId);
+            if (course) {
+                course.studentIds.forEach(studentId => {
+                    const key = `${date}_${course.id}_${studentId}`;
+                    const existingRecord = mockAttendanceData.find(
+                        (record) => record.date === date && record.courseId === course.id && record.studentId === studentId
+                    );
+                    initialRecords[key] = existingRecord?.status || 'No Registrado';
+                });
+            }
+        });
+    });
+    setAttendanceRecords(initialRecords);
+  }, [getCourseById]);
 
   useEffect(() => {
-    if (role === 'Apoderado' && apoderadoChildrenNames.length > 0 && !selectedChild) {
-      setSelectedChild(apoderadoChildrenNames[0]);
+    if (role === 'Apoderado' && apoderadoChildrenIds.length > 0 && !selectedChildId) {
+      setSelectedChildId(apoderadoChildrenIds[0]);
     }
-  }, [role, apoderadoChildrenNames, selectedChild]);
+  }, [role, apoderadoChildrenIds, selectedChildId]);
 
   const handleRoleChange = (newRole: string) => {
     setRole(newRole);
     setSearchTerm('');
-    if (newRole !== 'Apoderado') {
-      setSelectedChild('');
-    } else if (apoderadoChildrenNames.length > 0) {
-      setSelectedChild(apoderadoChildrenNames[0]);
+    setSelectedChildId(''); // Reset selected child when role changes
+    setExpandedCourseId(null); // Collapse any expanded courses for Admin/Teacher
+    setExpandedDate(null); // Collapse any expanded dates for Student/Apoderado
+    if (newRole === 'Apoderado' && apoderadoChildrenIds.length > 0) {
+      setSelectedChildId(apoderadoChildrenIds[0]);
     }
   };
 
-  const filteredCourses = useMemo(() => {
-    return coursesData.filter(course => {
-      const matchesSearch =
-        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.type.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleAttendanceChange = (courseId: number, studentId: string, date: string, status: string) => {
+    const key = `${date}_${courseId}_${studentId}`;
+    setAttendanceRecords(prev => ({
+      ...prev,
+      [key]: status
+    }));
+    // In a real application, you'd send this update to your backend API
+    console.log(`Attendance for ${getStudentNameById(studentId)} in ${getCourseById(courseId)?.name} on ${date} set to: ${status}`);
+  };
 
-      let matchesRoleSpecificFilter = true;
+  const getAttendanceStatus = useCallback((date: string, courseId: number, studentId: string) => {
+    const key = `${date}_${courseId}_${studentId}`;
+    return attendanceRecords[key] || 'No Registrado';
+  }, [attendanceRecords]);
 
-      if (role === 'Estudiante') {
-        matchesRoleSpecificFilter = course.students.includes(loggedInStudentName);
-      } else if (role === 'Docente') {
-        matchesRoleSpecificFilter = course.teacher === loggedInTeacherName;
-      } else if (role === 'Apoderado') {
-        matchesRoleSpecificFilter = selectedChild ? course.students.includes(selectedChild) : false;
+  const getStatusColorClass = (status: string) => {
+    switch (status) {
+      case 'Presente':
+        return 'bg-green-100 text-green-800';
+      case 'Ausente':
+        return 'bg-red-100 text-red-800';
+      case 'Tardanza':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Justificado':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Filtered courses for Admin/Teacher views based on selectedDate and search term
+  const dailyCoursesAdminTeacher = useMemo(() => {
+    const courseIdsForToday = mockSchedule[selectedDate] || [];
+    const courses = coursesData.filter(course => courseIdsForToday.includes(course.id));
+
+    const searchedCourses = courses.filter(course =>
+      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.teacher.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (role === 'Docente') {
+      return searchedCourses.filter(course => course.teacher === loggedInTeacherName);
+    } else if (role === 'Administrador') {
+      return searchedCourses;
+    }
+    return [];
+  }, [selectedDate, searchTerm, role, loggedInTeacherName]);
+
+  // Data for Student view (grouped by date)
+  const studentAttendanceByDate = useMemo(() => {
+    if (role !== 'Estudiante') return {};
+
+    const studentDailyRecords: Record<string, any[]> = {};
+    const sortedDates = Object.keys(mockSchedule).sort((a, b) => b.localeCompare(a)); // Sort dates descending
+
+    sortedDates.forEach(date => {
+      const courseIdsForDate = mockSchedule[date] || [];
+      const coursesForStudentOnDate = coursesData.filter(course =>
+        courseIdsForDate.includes(course.id) && course.studentIds.includes(loggedInStudentId)
+      );
+
+      const recordsForDate = coursesForStudentOnDate.map(course => ({
+        courseId: course.id, // Keep courseId for unique keys
+        courseName: course.name,
+        courseType: course.type,
+        teacher: course.teacher,
+        status: getAttendanceStatus(date, course.id, loggedInStudentId),
+      })).filter(record =>
+        // Filter by search term for student view
+        record.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.teacher.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      if (recordsForDate.length > 0) {
+        studentDailyRecords[date] = recordsForDate;
       }
-      return matchesSearch && matchesRoleSpecificFilter;
     });
-  }, [searchTerm, role, loggedInStudentName, loggedInTeacherName, selectedChild, coursesData]);
+    return studentDailyRecords;
+  }, [role, loggedInStudentId, searchTerm, getAttendanceStatus]);
 
+  // Data for Apoderado view (grouped by date for selected child)
+  const apoderadoAttendanceByDate = useMemo(() => {
+    if (role !== 'Apoderado' || !selectedChildId) return {};
+
+    const childDailyRecords: Record<string, any[]> = {};
+    const sortedDates = Object.keys(mockSchedule).sort((a, b) => b.localeCompare(a)); // Sort dates descending
+
+    sortedDates.forEach(date => {
+      const courseIdsForDate = mockSchedule[date] || [];
+      const coursesForChildOnDate = coursesData.filter(course =>
+        courseIdsForDate.includes(course.id) && course.studentIds.includes(selectedChildId)
+      );
+
+      const recordsForDate = coursesForChildOnDate.map(course => ({
+        courseId: course.id, // Keep courseId for unique keys
+        courseName: course.name,
+        courseType: course.type,
+        teacher: course.teacher,
+        status: getAttendanceStatus(date, course.id, selectedChildId),
+      })).filter(record =>
+        // Filter by search term for apoderado view
+        record.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        record.teacher.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      if (recordsForDate.length > 0) {
+        childDailyRecords[date] = recordsForDate;
+      }
+    });
+    return childDailyRecords;
+  }, [role, selectedChildId, searchTerm, getAttendanceStatus]);
+
+  // Summaries based on course assignments (unchanged)
   const CourseSummaryCard = ({ summary, title }: { summary: any, title: string }) => (
     <div className="mb-6 bg-white p-6 rounded-lg shadow-md border border-green-100 animate-fade-in">
       <h2 className="text-xl font-semibold text-green-800 mb-4">{title}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg flex items-center justify-between shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-green-700">Total de Cursos</p>
-            <p className="text-2xl font-bold text-green-900">{summary.totalCourses}</p>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13.5m0-13.5c-4.142 0-7.5 3.133-7.5 7s3.358 7 7.5 7h.75c2.201 0 4-1.799 4-4v-3.75c0-2.201-1.799-4-4-4H12z" />
-          </svg>
-        </div>
+      <div className="grid gap-4">
+        
         <div className="bg-green-50 p-4 rounded-lg flex items-center justify-between shadow-sm">
           <div>
             <p className="text-sm font-medium text-green-700">Cursos Asignados</p>
@@ -84,27 +257,27 @@ const CoursesDash = () => {
   const studentCourseSummary = useMemo(() => {
     if (role === 'Estudiante') {
       const totalCourses = coursesData.length;
-      const assignedCourses = coursesData.filter(course => course.students.includes(loggedInStudentName)).length;
+      const assignedCourses = coursesData.filter(course => course.studentIds.includes(loggedInStudentId)).length;
       return { totalCourses, assignedCourses };
     }
     return null;
-  }, [role, loggedInStudentName, coursesData]);
+  }, [role, loggedInStudentId, coursesData]);
 
   const apoderadoChildCourseSummary = useMemo(() => {
-    if (role === 'Apoderado' && selectedChild) {
+    if (role === 'Apoderado' && selectedChildId) {
       const totalCourses = coursesData.length;
-      const assignedCourses = coursesData.filter(course => course.students.includes(selectedChild)).length;
+      const assignedCourses = coursesData.filter(course => course.studentIds.includes(selectedChildId)).length;
       return { totalCourses, assignedCourses };
     }
     return null;
-  }, [role, selectedChild, coursesData]);
+  }, [role, selectedChildId, coursesData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4 md:p-6 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-extrabold text-green-900 mb-2">Panel de Cursos</h1>
-          <p className="text-green-700 text-lg">Visualiza los cursos disponibles y tus asignaciones.</p>
+          <h1 className="text-3xl font-extrabold text-green-900 mb-2">Panel de Asistencia</h1>
+          <p className="text-green-700 text-lg">Gestiona y visualiza la asistencia de estudiantes en sus respectivos cursos.</p>
         </div>
 
         <div className="mb-8 flex flex-col sm:flex-row gap-3 items-center justify-center bg-white p-4 rounded-xl shadow-lg border border-green-100">
@@ -146,136 +319,298 @@ const CoursesDash = () => {
           </div>
         </div>
 
-        {role === 'Administrador' && (
+        {(role === 'Administrador' || role === 'Docente') && (
           <div className="mb-6 bg-white p-6 rounded-xl shadow-lg border border-green-200 animate-fade-in">
-            <h2 className="text-xl font-semibold text-green-800 mb-4 border-b pb-3 border-green-100">Acciones de Administrador</h2>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <button className="px-6 py-3 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition-colors duration-200 transform hover:scale-105 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Añadir Nuevo Curso
-              </button>
-              <button className="px-6 py-3 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition-colors duration-200 transform hover:scale-105 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-                Gestionar Horarios
-              </button>
-              <button className="px-6 py-3 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition-colors duration-200 transform hover:scale-105 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zm-6 9A6 6 0 009 9.13l.426-.213A7 7 0 0115 10a7 7 0 01-.577 2.87l-.426-.213A6 6 0 0013 9zM10 18a8 8 0 100-16 8 8 0 000 16z" />
-                </svg>
-                Asignar Profesores
-              </button>
-              <button className="px-6 py-3 bg-green-700 text-white rounded-lg shadow-md hover:bg-green-800 transition-colors duration-200 transform hover:scale-105 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-                Exportar Lista
-              </button>
-            </div>
+            <h2 className="text-xl font-semibold text-green-800 mb-4 border-b pb-3 border-green-100">
+              Gestión de Asistencia para el día: <span className="font-bold text-green-900">{selectedDate}</span>
+            </h2>
+            <input
+              type="date"
+              className="w-full px-5 py-2 border border-green-300 rounded-lg bg-green-50 text-green-900 focus:outline-none focus:ring-3 focus:ring-green-400 transition-all duration-300 shadow-sm"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setExpandedCourseId(null); // Collapse any expanded course when date changes
+              }}
+            />
           </div>
         )}
 
-        {role === 'Apoderado' && apoderadoChildrenNames.length > 0 && (
+        {role === 'Apoderado' && apoderadoChildrenIds.length > 0 && (
           <div className="mb-6 bg-white p-6 rounded-xl shadow-lg border border-green-200 animate-fade-in">
             <h2 className="text-xl font-semibold text-green-800 mb-4 border-b pb-3 border-green-100">Selecciona un Hijo:</h2>
             <select
               className="w-full px-5 py-2 border border-green-300 rounded-lg bg-green-50 text-green-900 focus:outline-none focus:ring-3 focus:ring-green-400 transition-all duration-300 shadow-sm appearance-none pr-8"
-              value={selectedChild}
-              onChange={(e) => setSelectedChild(e.target.value)}
+              value={selectedChildId}
+              onChange={(e) => setSelectedChildId(e.target.value)}
             >
-              {apoderadoChildrenNames.map(childName => (
-                <option key={childName} value={childName}>
-                  {childName}
+              {apoderadoChildrenIds.map(childId => (
+                <option key={childId} value={childId}>
+                  {getStudentNameById(childId)}
                 </option>
               ))}
             </select>
           </div>
         )}
 
-        {role === 'Apoderado' && (!selectedChild || apoderadoChildrenNames.length === 0) && (
+        {role === 'Apoderado' && (!selectedChildId || apoderadoChildrenIds.length === 0) && (
           <div className="py-12 text-center text-green-600 bg-white rounded-xl shadow-lg border border-green-200 mb-6">
             <p className="text-lg font-medium">
-              {apoderadoChildrenNames.length === 0 ? (
+              {apoderadoChildrenIds.length === 0 ? (
                 'No se encontraron hijos asociados a tu cuenta de apoderado.'
               ) : (
-                'Por favor, selecciona un hijo para ver sus cursos.'
+                'Por favor, selecciona un hijo para ver sus cursos y asistencia.'
               )}
             </p>
           </div>
         )}
 
         {role === 'Estudiante' && studentCourseSummary && (
-          <CourseSummaryCard summary={studentCourseSummary} title={`Resumen de Cursos de ${loggedInStudentName}`} />
+          <CourseSummaryCard summary={studentCourseSummary} title={`Resumen de Cursos de ${getStudentNameById(loggedInStudentId)}`} />
         )}
 
-        {role === 'Apoderado' && selectedChild && apoderadoChildCourseSummary && (
-          <CourseSummaryCard summary={apoderadoChildCourseSummary} title={`Resumen de Cursos de ${selectedChild}`} />
+        {role === 'Apoderado' && selectedChildId && apoderadoChildCourseSummary && (
+          <CourseSummaryCard summary={apoderadoChildCourseSummary} title={`Resumen de Cursos de ${getStudentNameById(selectedChildId)}`} />
         )}
 
         <div className="space-y-6">
-          {filteredCourses.length > 0 ? (
-            <div className="bg-white rounded-xl shadow-lg border border-green-200 overflow-hidden animate-fade-in">
-              <table className="min-w-full divide-y divide-green-200">
-                <thead className="bg-green-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
-                      Curso
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
-                      Tipo/Grado
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
-                      Profesor
-                    </th>
-                    {(role === 'Administrador' || role === 'Docente') && (
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
-                        Estudiantes
-                      </th>
-                    )}
-                    {role === 'Administrador' && (
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-green-100">
-                  {filteredCourses.map(course => (
-                    <tr key={course.id} className="hover:bg-green-50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-900">
-                        {course.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
-                        {course.type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
-                        {course.teacher}
-                      </td>
-                      {(role === 'Administrador' || role === 'Docente') && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
-                          {course.students.join(', ')}
-                        </td>
-                      )}
-                      {role === 'Administrador' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a href="#" className="text-green-600 hover:text-green-800 mr-4 transition-colors duration-150">Editar</a>
-                          <a href="#" className="text-red-500 hover:text-red-700 transition-colors duration-150">Eliminar</a>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="py-12 text-center text-green-600 bg-white rounded-xl shadow-lg border border-green-200">
-              <p className="text-lg font-medium">
-                No hay cursos disponibles para los filtros y el rol seleccionados.
-              </p>
-            </div>
+          {/* Student View (Grouped by Date) */}
+          {role === 'Estudiante' && (
+            Object.keys(studentAttendanceByDate).length > 0 ? (
+              Object.keys(studentAttendanceByDate).map(date => (
+                <div key={date} className="bg-white rounded-xl shadow-lg border border-green-200 overflow-hidden animate-fade-in">
+                  <div
+                    className="px-6 py-4 bg-green-50 border-b border-green-100 cursor-pointer flex justify-between items-center"
+                    onClick={() => setExpandedDate(expandedDate === date ? null : date)}
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-green-800">Asistencia del {date}</h3>
+                    </div>
+                    <svg
+                      className={`w-6 h-6 text-green-600 transform transition-transform duration-200 ${expandedDate === date ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  {expandedDate === date && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-green-200">
+                        <thead className="bg-green-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Curso (Grado)
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Profesor
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Estado
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-green-100">
+                          {studentAttendanceByDate[date].map((record, index) => (
+                            <tr key={`${date}-${record.courseId}-${index}`} className="hover:bg-green-50 transition-colors duration-150">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-900">
+                                {record.courseName} ({record.courseType})
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
+                                {record.teacher}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(record.status)}`}>
+                                  {record.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-green-600 bg-white rounded-xl shadow-lg border border-green-200">
+                <p className="text-lg font-medium">
+                  No se encontraron registros de asistencia para los filtros seleccionados.
+                </p>
+              </div>
+            )
+          )}
+
+          {role === 'Apoderado' && selectedChildId && (
+            Object.keys(apoderadoAttendanceByDate).length > 0 ? (
+              Object.keys(apoderadoAttendanceByDate).map(date => (
+                <div key={date} className="bg-white rounded-xl shadow-lg border border-green-200 overflow-hidden animate-fade-in">
+                  <div
+                    className="px-6 py-4 bg-green-50 border-b border-green-100 cursor-pointer flex justify-between items-center"
+                    onClick={() => setExpandedDate(expandedDate === date ? null : date)}
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-green-800">Asistencia de {getStudentNameById(selectedChildId)} del {date}</h3>
+                      <p className="text-sm text-green-600">Cursos registrados: {apoderadoAttendanceByDate[date].length}</p>
+                    </div>
+                    <svg
+                      className={`w-6 h-6 text-green-600 transform transition-transform duration-200 ${expandedDate === date ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  {expandedDate === date && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-green-200">
+                        <thead className="bg-green-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Curso (Grado)
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Profesor
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Estado
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-green-100">
+                          {apoderadoAttendanceByDate[date].map((record, index) => (
+                            <tr key={`${date}-${record.courseId}-${index}`} className="hover:bg-green-50 transition-colors duration-150">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-900">
+                                {record.courseName} ({record.courseType})
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
+                                {record.teacher}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(record.status)}`}>
+                                  {record.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-green-600 bg-white rounded-xl shadow-lg border border-green-200">
+                <p className="text-lg font-medium">
+                  No se encontraron registros de asistencia para {getStudentNameById(selectedChildId)} para los filtros seleccionados.
+                </p>
+              </div>
+            )
+          )}
+
+
+          {/* Admin/Teacher View (Courses for the selected day, with expandable student lists) */}
+          {(role === 'Administrador' || role === 'Docente') && (
+            dailyCoursesAdminTeacher.length > 0 ? (
+              dailyCoursesAdminTeacher.map(course => (
+                <div key={course.id} className="bg-white rounded-xl shadow-lg border border-green-200 overflow-hidden animate-fade-in">
+                  <div
+                    className="px-6 py-4 bg-green-50 border-b border-green-100 cursor-pointer flex justify-between items-center"
+                    onClick={() => setExpandedCourseId(expandedCourseId === course.id ? null : course.id)}
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-green-800">{course.name} ({course.type})</h3>
+                      <p className="text-sm text-green-600">Profesor: {course.teacher}</p>
+                    </div>
+                    <svg
+                      className={`w-6 h-6 text-green-600 transform transition-transform duration-200 ${expandedCourseId === course.id ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  {expandedCourseId === course.id && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-green-200">
+                        <thead className="bg-green-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Estudiante
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Estado
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                              Modificar Asistencia
+                            </th>
+                            {role === 'Administrador' && (
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">
+                                Acciones
+                              </th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-green-100">
+                          {course.studentIds.map(studentId => {
+                            const studentName = getStudentNameById(studentId);
+                            const currentStatus = getAttendanceStatus(selectedDate, course.id, studentId);
+
+                            return (
+                              <tr key={`${course.id}-${studentId}`} className="hover:bg-green-50 transition-colors duration-150">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-900">
+                                  {studentName}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColorClass(currentStatus)}`}>
+                                    {currentStatus}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div className="flex flex-wrap gap-2">
+                                    {['Presente', 'Tardanza', 'Ausente', 'Justificado'].map(status => (
+                                      <button
+                                        key={status}
+                                        onClick={() => handleAttendanceChange(course.id, studentId, selectedDate, status)}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors duration-200
+                                          ${currentStatus === status
+                                            ? 'bg-green-600 text-white shadow-sm'
+                                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                                          }`}
+                                      >
+                                        {status}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </td>
+                                {role === 'Administrador' && (
+                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="#" className="text-green-600 hover:text-green-800 mr-4 transition-colors duration-150">Editar</a>
+                                    <a href="#" className="text-red-500 hover:text-red-700 transition-colors duration-150">Eliminar</a>
+                                  </td>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-green-600 bg-white rounded-xl shadow-lg border border-green-200">
+                <p className="text-lg font-medium">
+                  No hay cursos programados para el **{selectedDate}** con los filtros y rol seleccionados.
+                </p>
+              </div>
+            )
           )}
         </div>
       </div>
@@ -283,4 +618,4 @@ const CoursesDash = () => {
   );
 };
 
-export default CoursesDash;
+export default AttendancesDash;
